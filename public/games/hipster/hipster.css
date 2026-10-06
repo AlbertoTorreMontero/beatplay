@@ -1,0 +1,480 @@
+/* =========================================================
+   BEATPLAY — HIPSTER
+   Las cartas se quedan claras: son las fichas físicas
+   del juego y contrastan con el tablero oscuro.
+========================================================= */
+
+.hipsterLayout {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 30px 5vw 60px;
+    background: var(--black, #0a0a0a);
+    color: var(--white, #f1f0eb);
+}
+
+.hipsterHeader,
+.hipsterGame {
+    width: min(1250px, 100%);
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   CABECERA
+========================================================= */
+
+.hipsterHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 30px;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid var(--line, #292929);
+}
+
+.hipsterHeader h1 {
+    margin: 10px 0 6px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: clamp(46px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 0.8;
+    letter-spacing: -1px;
+}
+
+.hipsterHeader p {
+    color: var(--grey, #858582);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+}
+
+.hipsterStats {
+    display: flex;
+    gap: 10px;
+}
+
+.hipsterStat {
+    min-width: 110px;
+    padding: 14px 18px;
+    background: transparent;
+    border: 1px solid var(--line, #292929);
+    text-align: center;
+}
+
+.hipsterStat span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent, #8b78a5);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.hipsterStat strong {
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 0.85;
+}
+
+
+/* =========================================================
+   PANTALLAS
+========================================================= */
+
+.hipsterGameOver {
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.hipsterGameOver h2 {
+    margin: 8px 0 14px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: clamp(48px, 7vw, 84px);
+    font-weight: 400;
+    line-height: 0.8;
+}
+
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+.hipsterPrimary,
+.hipsterBack,
+.hipsterPlayButton,
+.hipsterPlus {
+    border: 0;
+    cursor: pointer;
+    font-family: var(--mono, "DM Mono", monospace);
+}
+
+.hipsterPrimary {
+    min-height: 48px;
+    padding: 0 26px;
+    background: var(--white, #f1f0eb);
+    color: var(--black, #0a0a0a);
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hipsterPrimary:hover {
+    background: var(--accent, #8b78a5);
+    color: var(--black, #0a0a0a);
+}
+
+.hipsterBack {
+    min-height: 44px;
+    margin-top: 12px;
+    align-self: flex-start;
+    padding: 0 20px;
+    border: 1px solid var(--line, #292929);
+    background: transparent;
+    color: var(--grey, #858582);
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.hipsterBack:hover {
+    border-color: var(--white, #f1f0eb);
+    color: var(--white, #f1f0eb);
+}
+
+
+/* =========================================================
+   REPRODUCTOR
+========================================================= */
+
+.hipsterPlayer {
+    width: min(760px, 100%);
+    margin: 0 auto 30px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #101010;
+    border: 1px solid var(--line, #292929);
+}
+
+.hipsterPlayButton {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--white, #f1f0eb);
+    color: var(--black, #0a0a0a);
+    font-size: 14px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hipsterPlayButton:hover {
+    background: var(--accent, #8b78a5);
+    color: var(--black, #0a0a0a);
+}
+
+.hipsterPlayerMain {
+    flex: 1;
+    min-width: 0;
+}
+
+.hipsterPlayerMeta,
+.hipsterPlayerTimes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hipsterPlayerMeta {
+    margin-bottom: 8px;
+}
+
+.hipsterPlayerMeta span:first-child {
+    color: var(--white, #f1f0eb);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+#hipsterPlayerStatus {
+    color: var(--accent, #8b78a5);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+#hipsterProgress {
+    width: 100%;
+    height: 3px;
+    display: block;
+    appearance: none;
+    accent-color: var(--accent, #8b78a5);
+    cursor: pointer;
+}
+
+.hipsterPlayerTimes {
+    margin-top: 6px;
+    color: var(--grey, #858582);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   LÍNEA TEMPORAL
+========================================================= */
+
+.hipsterTop {
+    margin-bottom: 20px;
+}
+
+.hipsterTop h2 {
+    margin-top: 6px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 0.85;
+}
+
+.hipsterTimeline {
+    width: 100%;
+    min-height: 280px;
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+}
+
+.hipsterSlot {
+    flex: 0 0 48px;
+    height: 245px;
+    display: grid;
+    place-items: center;
+}
+
+.hipsterPlus {
+    width: 44px;
+    height: 44px;
+    border: 1px dashed #4a4a4a;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--grey, #858582);
+    font-size: 22px;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+
+    .hipsterPlus:hover {
+        background: var(--accent, #8b78a5);
+        border-color: var(--accent, #8b78a5);
+        border-style: solid;
+        color: var(--black, #0a0a0a);
+    }
+}
+
+
+/* =========================================================
+   CARTAS
+========================================================= */
+
+.hipsterCard {
+    scroll-snap-align: center;
+    flex: 0 0 190px;
+    width: 190px;
+    height: 245px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #f2f1ed;
+    color: #111;
+    border: 1px solid #d8d5cd;
+    text-align: center;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.hipsterCardCover {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.hipsterCardArtist {
+    margin-top: 8px;
+    color: #6d6d68;
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.hipsterCardYear {
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 0.85;
+}
+
+.hipsterCardSong {
+    min-height: 28px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.hipsterCard.correct {
+    animation: hipsterCorrect 0.65s ease;
+    border: 2px solid var(--accent, #8b78a5);
+}
+
+.hipsterCard.wrong {
+    animation: hipsterWrong 0.65s ease;
+    border: 2px solid #b8443a;
+}
+
+@keyframes hipsterCorrect {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.94);
+    }
+
+    55% {
+        transform: scale(1.04);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes hipsterWrong {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-7px);
+    }
+
+    75% {
+        transform: translateX(7px);
+    }
+}
+
+
+/* =========================================================
+   RESULTADO
+========================================================= */
+
+.hipsterResult {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid var(--line, #292929);
+    text-align: center;
+}
+
+.hipsterResult strong {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 26px;
+    font-weight: 400;
+}
+
+
+/* =========================================================
+   FINAL
+========================================================= */
+
+.hipsterFinalScore {
+    margin: 22px 0;
+}
+
+.hipsterFinalScore span {
+    display: block;
+    color: var(--accent, #8b78a5);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.hipsterFinalScore strong {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 90px;
+    font-weight: 400;
+    line-height: 0.8;
+}
+
+.hipsterFinalRecord {
+    margin-bottom: 20px;
+    color: var(--accent, #8b78a5);
+    font-family: var(--serif, "Instrument Serif", serif);
+    font-size: 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 750px) {
+
+    .hipsterLayout {
+        padding: 25px 15px 50px;
+    }
+
+    .hipsterHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hipsterStats {
+        width: 100%;
+    }
+
+    .hipsterStat {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hipsterFinalScore strong {
+        font-size: 70px;
+    }
+}
+
+.hipsterPlus:focus-visible {
+    border-style: solid;
+    border-color: var(--accent, #8b78a5);
+    color: var(--white, #f1f0eb);
+}
+
+.hipsterHeader .hipsterBack {
+    margin-top: 0;
+    align-self: flex-end;
+}

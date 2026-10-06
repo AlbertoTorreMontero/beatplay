@@ -1,0 +1,415 @@
+/* =========================================================
+   BEATPLAY — BINGO
+   Interfaz en negro; los cartones siguen siendo papel
+   (fondo claro) porque están pensados para imprimirse.
+========================================================= */
+
+#bingoScreen {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 30px 5vw 60px;
+    background: var(--black, #0a0a0a);
+    color: var(--white, #f1f0eb);
+}
+
+
+/* =========================================================
+   CABECERA
+========================================================= */
+
+.bingoHeader {
+    width: min(1200px, 100%);
+    margin: 0 auto 30px;
+    padding-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 25px;
+    border-bottom: 1px solid var(--line, #292929);
+}
+
+.bingoHeader h1 {
+    margin: 10px 0 6px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: clamp(46px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 0.8;
+}
+
+.bingoHeader p {
+    color: var(--grey, #858582);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+}
+
+#exitBingoButton {
+    height: 42px;
+    padding: 0 18px;
+    border: 1px solid var(--line, #292929);
+    background: transparent;
+    color: var(--grey, #858582);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+#exitBingoButton:hover {
+    border-color: var(--white, #f1f0eb);
+    color: var(--white, #f1f0eb);
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN
+========================================================= */
+
+.bingoSetup {
+    width: min(1200px, 100%);
+    margin: 0 auto 30px;
+    padding: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+    border: 1px solid var(--line, #292929);
+}
+
+.bingoSetupInfo h2 {
+    margin: 6px 0 8px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 34px;
+    font-weight: 400;
+    line-height: 0.85;
+}
+
+.bingoSetupInfo p {
+    max-width: 420px;
+    color: var(--grey, #858582);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.bingoControls {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.bingoControl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bingoControl label {
+    color: var(--accent, #8b78a5);
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+}
+
+.bingoControl input,
+.bingoControl select {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line, #292929);
+    background: #121212;
+    color: var(--white, #f1f0eb);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.bingoControl input:focus,
+.bingoControl select:focus {
+    border-color: var(--accent, #8b78a5);
+}
+
+.bingoControl input {
+    min-width: 220px;
+}
+
+.bingoControl select {
+    min-width: 180px;
+}
+
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+.primaryButton,
+.secondaryButton {
+    height: 44px;
+    padding: 0 20px;
+    border: 0;
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.primaryButton {
+    background: var(--white, #f1f0eb);
+    color: var(--black, #0a0a0a);
+}
+
+.primaryButton:hover:not(:disabled) {
+    background: var(--accent, #8b78a5);
+    color: var(--black, #0a0a0a);
+}
+
+.secondaryButton {
+    background: transparent;
+    border: 1px solid var(--line, #292929);
+    color: var(--grey, #858582);
+}
+
+.secondaryButton:hover:not(:disabled) {
+    border-color: var(--white, #f1f0eb);
+    color: var(--white, #f1f0eb);
+}
+
+button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   CARTONES
+========================================================= */
+
+#bingoCards {
+    width: min(1200px, 100%);
+    margin: 30px auto;
+}
+
+.bingoCardsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+}
+
+.bingoCard {
+    padding: 20px;
+    background: #f2f1ed;
+    color: #111;
+    border: 1px solid #d8d5cd;
+}
+
+.bingoCardHeader {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid #111;
+}
+
+.bingoCardHeader span {
+    color: #6d6d68;
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+}
+
+.bingoCardHeader h3 {
+    margin-top: 5px;
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 0.85;
+}
+
+.bingoCardHeader strong {
+    font-family: var(--display, "Bebas Neue", sans-serif);
+    font-size: 24px;
+    font-weight: 400;
+}
+
+
+/* TABLA */
+
+.bingoGrid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    border: 1px solid #111;
+}
+
+.bingoCell {
+    min-width: 0;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #c9c6be;
+    background: #e6e3db;
+    text-align: center;
+}
+
+.bingoCell.filled {
+    background: #fff;
+}
+
+.bingoCell img {
+    width: 58%;
+    aspect-ratio: 1;
+    margin-bottom: 5px;
+    object-fit: cover;
+}
+
+.bingoTrackName {
+    width: 90%;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.1;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bingoCardFooter {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    color: #6d6d68;
+    font-family: var(--mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.bingoActions {
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+
+/* =========================================================
+   AJUSTES DE PANTALLA
+========================================================= */
+
+@media screen {
+
+    #bingoCards .bingoCard {
+        padding: 14px;
+    }
+
+    #bingoCards .bingoCardHeader {
+        margin-bottom: 10px;
+    }
+
+    #bingoCards .bingoCardHeader h3 {
+        font-size: 20px;
+    }
+
+    #bingoCards .bingoCell img {
+        width: 48%;
+        margin-bottom: 3px;
+    }
+
+    #bingoCards .bingoTrackName {
+        font-size: 11px;
+        line-height: 1.05;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    #bingoScreen {
+        padding: 20px;
+    }
+
+    .bingoHeader,
+    .bingoSetup {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .bingoHeader h1 {
+        font-size: 38px;
+    }
+
+    .bingoControls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .bingoControl input,
+    .bingoControl select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .bingoCardsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   IMPRESIÓN
+========================================================= */
+
+@media print {
+
+    #bingoScreen {
+        padding: 0;
+        background: #fff;
+        color: #111;
+    }
+
+    .bingoHeader,
+    .bingoSetup,
+    .bingoActions {
+        display: none !important;
+    }
+
+    #bingoCards {
+        width: 100%;
+        margin: 0;
+    }
+
+    .bingoCardsGrid {
+        display: block;
+    }
+
+    .bingoCard {
+        width: 100%;
+        margin: 0 auto 10mm;
+        padding: 20px;
+        background: #fff;
+        border: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .bingoCell {
+        background: #fff;
+    }
+
+    .bingoCard:last-child {
+        margin-bottom: 0;
+    }
+}
+
+@page {
+    size: A4 portrait;
+    margin: 10mm;
+}

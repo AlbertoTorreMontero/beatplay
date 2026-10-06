@@ -1,0 +1,59 @@
+<div class="hipsterLayout">
+    <header class="hipsterHeader">
+        <div>
+            <span class="eyebrow">SPOTIFY GAMES</span>
+            <h1>HIPSTER</h1>
+            <p>Escucha la canción y colócala en el momento correcto.</p>
+        </div>
+        <div class="hipsterStats">
+            <div class="hipsterStat">
+                <span>RACHA</span>
+                <strong id="hipsterScore">0</strong>
+            </div>
+            <div class="hipsterStat">
+                <span>RÉCORD</span>
+                <strong id="hipsterBest">0</strong>
+            </div>
+        </div>
+        <button class="hipsterBack" type="button" data-exit="hipster">← Salir</button>
+    </header>
+
+    <div class="hipsterGame">
+        <section id="hipsterBoard" class="hidden" aria-label="Partida">
+            <div class="hipsterPlayer">
+                <button id="hipsterPlayPause" class="hipsterPlayButton" type="button" aria-label="Reproducir o pausar">▶</button>
+                <div class="hipsterPlayerMain">
+                    <div class="hipsterPlayerMeta">
+                        <span>HIPSTER</span>
+                        <span id="hipsterPlayerStatus">LISTO</span>
+                    </div>
+                    <input id="hipsterProgress" type="range" min="0" max="1000" value="0" aria-label="Posición de la canción">
+                    <div class="hipsterPlayerTimes">
+                        <span id="hipsterCurrentTime">0:00</span>
+                        <span id="hipsterDuration">0:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <header class="hipsterTop">
+                <span class="eyebrow">LÍNEA TEMPORAL</span>
+                <h2>¿Dónde la colocarías?</h2>
+            </header>
+
+            <div id="hipsterTimeline" class="hipsterTimeline"></div>
+            <div id="hipsterResult" class="hipsterResult hidden" role="status"></div>
+        </section>
+
+        <section id="hipsterGameOver" class="hipsterGameOver hidden" aria-live="polite">
+            <span class="eyebrow">GAME OVER</span>
+            <h2 id="hipsterFinalTitle">Te has equivocado</h2>
+            <div class="hipsterFinalScore">
+                <span>RACHA CONSEGUIDA</span>
+                <strong id="hipsterFinalScore">0</strong>
+            </div>
+            <div id="hipsterFinalRecord" class="hipsterFinalRecord"></div>
+            <button id="hipsterRestartButton" class="hipsterPrimary" type="button">Jugar otra vez</button>
+            <button class="hipsterBack" type="button" data-exit="hipster">← Volver</button>
+        </section>
+    </div>
+</div>

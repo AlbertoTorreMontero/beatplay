@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BeatPlay — Juegos musicales</title>
+    <meta name="description" content="Juegos con tus playlists de Spotify: Snake, Bingo, Hipster y Music Roulette.">
+    <meta name="theme-color" content="#0a0a0a">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="stylesheet" href="/app/app.css">
+    <link rel="stylesheet" href="/games/snake/snake.css">
+    <link rel="stylesheet" href="/games/bingo/bingo.css">
+    <link rel="stylesheet" href="/games/hipster/hipster.css">
+    <link rel="stylesheet" href="/games/roulette/roulette.css">
+</head>
+
+<body>
+    <main>
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
+
+    <section id="loginScreen" class="screen login-screen hidden" aria-label="Iniciar sesión">
+
+        <div class="login-container">
+
+            <span class="login-eyebrow">BEATPLAY</span>
+
+            <h1>PLAY YOUR MUSIC.</h1>
+
+            <p>Conecta tu cuenta de Spotify para jugar con tus playlists.</p>
+
+            <a href="/login" class="spotify-login-button">
+                INICIAR SESIÓN CON SPOTIFY
+                <span aria-hidden="true">↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MENÚ
+    ====================================================== -->
+
+    <section id="menuScreen" class="screen hidden" aria-label="Menú de juegos">
+
+        <div class="app-container">
+
+            <header class="app-header">
+
+                <div class="app-logo">BEAT<span>PLAY</span></div>
+
+                <span class="app-status" id="appStatus" role="status">CONECTANDO</span>
+
+            </header>
+
+
+            <div class="menu-title">
+
+                <span class="menu-eyebrow">SELECCIONA</span>
+
+                <h1>TU JUEGO. <em>TU MÚSICA.</em></h1>
+
+            </div>
+
+
+            <!-- JUEGOS -->
+
+            <div class="game-selector" id="gameSelector" role="group" aria-label="Juego">
+
+                <button class="game-card selected" type="button" data-game="snake">
+                    <span class="game-card-number">01</span>
+                    <span class="game-card-arrow" aria-hidden="true">↗</span>
+                    <span class="game-card-info">
+                        <span class="game-card-type">ARCADE</span>
+                        <span class="game-card-title">SNAKE</span>
+                    </span>
+                </button>
+
+                <button class="game-card" type="button" data-game="bingo">
+                    <span class="game-card-number">02</span>
+                    <span class="game-card-arrow" aria-hidden="true">↗</span>
+                    <span class="game-card-info">
+                        <span class="game-card-type">PARTY</span>
+                        <span class="game-card-title">BINGO</span>
+                    </span>
+                </button>
+
+                <button class="game-card" type="button" data-game="hipster-user">
+                    <span class="game-card-number">03</span>
+                    <span class="game-card-arrow" aria-hidden="true">↗</span>
+                    <span class="game-card-info">
+                        <span class="game-card-type">TU PLAYLIST</span>
+                        <span class="game-card-title">HIPSTER</span>
+                    </span>
+                </button>
+
+                <button class="game-card" type="button" data-game="hipster-global">
+                    <span class="game-card-number">04</span>
+                    <span class="game-card-arrow" aria-hidden="true">↗</span>
+                    <span class="game-card-info">
+                        <span class="game-card-type">OFICIAL</span>
+                        <span class="game-card-title">HIPSTER GLOBAL</span>
+                    </span>
+                </button>
+
+                <button class="game-card" type="button" data-game="roulette">
+                    <span class="game-card-number">05</span>
+                    <span class="game-card-arrow" aria-hidden="true">↗</span>
+                    <span class="game-card-info">
+                        <span class="game-card-type">HASTA 10 JUGADORES</span>
+                        <span class="game-card-title">MUSIC ROULETTE</span>
+                    </span>
+                </button>
+
+            </div>
+
+
+            <!-- PLAYLISTS -->
+
+            <section class="playlist-section" id="playlistSection">
+
+                <div class="playlist-header">
+                    <h2>TU MÚSICA</h2>
+                    <span class="playlist-loading" id="playlistStatus" role="status">Cargando playlists…</span>
+                </div>
+
+                <div class="playlist-grid" id="playlistList"></div>
+
+            </section>
+
+
+            <!-- EMPEZAR -->
+
+            <div class="start-section">
+
+                <div class="start-info">
+                    <span class="selected-label">SELECCIÓN</span>
+                    <div id="selectedText" aria-live="polite">Elige una playlist</div>
+                </div>
+
+                <button class="start-button" id="startButton" type="button" disabled>
+                    <span id="startLabel">EMPEZAR SNAKE</span>
+                    <span aria-hidden="true">↗</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PANTALLAS DE JUEGO
+    ====================================================== -->
+
+    <section id="gameScreen" class="screen hidden" aria-label="Snake">
+        <div id="snakeContainer"></div>
+    </section>
+
+    <section id="bingoScreen" class="screen hidden" aria-label="Bingo musical">
+        <div id="bingoContainer"></div>
+    </section>
+
+    <section id="hipsterScreen" class="screen hidden" aria-label="Hipster">
+        <div id="hipsterContainer"></div>
+    </section>
+
+    <section id="rouletteScreen" class="screen hidden" aria-label="Music Roulette">
+        <div id="rouletteContainer"></div>
+    </section>
+
+
+    </main>
+
+    <!-- =====================================================
+         SCRIPTS
+         player.js define onSpotifyWebPlaybackSDKReady antes de
+         que cargue el SDK de Spotify.
+    ====================================================== -->
+    <script src="/lib/utils.js"></script>
+    <script src="/lib/auth.js"></script>
+    <script src="/lib/player.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script src="/lib/playlists.js"></script>
+
+    <script src="/games/snake/snake.js"></script>
+    <script src="/games/bingo/bingo.js"></script>
+    <script src="/games/hipster/hipster.js"></script>
+    <script src="/games/roulette/roulette.js"></script>
+
+    <script src="/app/app.js"></script>
+</body>
+</html>

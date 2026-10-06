@@ -1,0 +1,55 @@
+<div class="snakeLayout">
+    <header class="gameHeader">
+        <div class="gameTitle">
+            <span class="eyebrow">SNAKE</span>
+            <strong id="gamePlaylistName">—</strong>
+        </div>
+        <div class="scoreBox">
+            <span>PUNTOS</span>
+            <strong id="score">0</strong>
+        </div>
+        <div class="gameTrack">
+            <img id="gameAlbumImage" alt="" hidden>
+            <div>
+                <strong id="gameTrackName">—</strong>
+                <span id="gameArtistName">—</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="snakeGame">
+        <div class="canvasWrapper">
+            <canvas id="gameCanvas" width="800" height="600" role="img" aria-label="Tablero de Snake. Muévete con las flechas, WASD, deslizando o con la cruceta."></canvas>
+
+            <div id="snakeReady" class="snakeOverlay">
+                <span class="eyebrow">SNAKE</span>
+                <h2>¿Listo?</h2>
+                <div class="snakeModes" role="group" aria-label="Modo de juego">
+                    <button type="button" data-snake-mode="classic" aria-pressed="true">Clásico</button>
+                    <button type="button" data-snake-mode="synth" aria-pressed="false">Synth</button>
+                </div>
+                <p id="snakeModeHint"></p>
+                <button id="startSnakeButton" class="snakePrimary" type="button">Empezar</button>
+            </div>
+
+            <div id="snakeGameOver" class="snakeOverlay hidden" role="alert">
+                <span class="eyebrow">GAME OVER</span>
+                <h2>Fin de la partida</h2>
+                <p id="snakeFinalScore">Puntuación: 0</p>
+                <button id="restartSnakeButton" class="snakePrimary" type="button">Reiniciar</button>
+            </div>
+        </div>
+
+        <div class="snakePad" aria-label="Controles táctiles">
+            <button type="button" data-steer="up" aria-label="Arriba">↑</button>
+            <button type="button" data-steer="left" aria-label="Izquierda">←</button>
+            <button type="button" data-steer="down" aria-label="Abajo">↓</button>
+            <button type="button" data-steer="right" aria-label="Derecha">→</button>
+        </div>
+
+        <footer class="gameFooter">
+            <span id="snakeFooterHint">COME PARA CAMBIAR DE CANCIÓN</span>
+            <button id="exitGameButton" type="button" data-exit="snake">← Volver</button>
+        </footer>
+    </div>
+</div>
