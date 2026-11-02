@@ -1,17 +1,18 @@
 {
-  "name": "spotify-snake",
-  "version": "1.0.0",
-  "description": "BeatPlay: juegos musicales sobre tus playlists de Spotify.",
-  "main": "server.js",
+  "name": "beatplay",
+  "version": "2.0.0",
+  "description": "BeatPlay: juegos musicales con tus playlists (Snake, Bingo, Hipster y Music Roulette).",
+  "main": "src/server/index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
     "test": "node --test test/server.test.js"
   },
   "engines": {
     "node": ">=20"
   },
   "keywords": [],
-  "author": "",
+  "author": "Alberto Torre Montero",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

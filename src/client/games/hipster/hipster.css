@@ -1,0 +1,165 @@
+/* =========================================================
+   HIPSTER
+========================================================= */
+
+.hipster-board { display: grid; gap: var(--space-5); }
+
+.hipster-player {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+}
+
+/* La canción misteriosa: una carta boca abajo. */
+.mystery {
+    flex: none;
+    width: 96px;
+    aspect-ratio: 3 / 4;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.hipster-player-main { flex: 1; display: grid; gap: var(--space-3); min-width: 0; }
+
+.hipster-question { font-family: var(--serif); font-size: var(--text-lead); line-height: 1.15; }
+
+.hipster-controls { display: flex; align-items: center; gap: var(--space-4); }
+
+.play-button {
+    flex: none;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--bone);
+    color: var(--ink);
+    font-size: 0.9rem;
+    transition: transform var(--fast) var(--ease), background var(--fast);
+}
+
+.play-button:hover { background: var(--accent-text); transform: scale(1.06); }
+
+.progress {
+    --fill: 0%;
+    flex: 1;
+    height: 20px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.progress::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--bone) var(--fill), var(--line-strong) var(--fill));
+}
+
+.progress::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line-strong); }
+.progress::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--bone); }
+
+.progress::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px; height: 14px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--bone);
+}
+
+.progress::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--bone); }
+
+.hipster-time { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hipster-status { color: var(--accent-text); font-family: var(--mono); font-size: var(--text-xs); }
+.hipster-help { color: var(--grey); font-size: var(--text-sm); }
+
+
+/* ---------- Línea temporal ---------- */
+
+.timeline {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    padding: var(--space-4) var(--space-2) var(--space-5);
+    scroll-snap-type: x proximity;
+    scrollbar-color: var(--line-strong) transparent;
+}
+
+.slot { flex: none; display: flex; align-items: center; padding: 0 var(--space-2); }
+
+.slot-button {
+    width: 44px; height: 44px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 50%;
+    color: var(--grey);
+    font-size: 1.3rem;
+    transition: background var(--fast), color var(--fast), border-color var(--fast), transform var(--fast) var(--ease);
+}
+
+.slot-button:hover, .slot-button:focus-visible {
+    border: 1px solid var(--bone);
+    background: var(--bone);
+    color: var(--ink);
+    transform: scale(1.12);
+}
+
+.year-card {
+    flex: none;
+    width: 168px;
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border-radius: var(--radius);
+    background: var(--bone);
+    color: var(--ink);
+    scroll-snap-align: center;
+}
+
+.year-card-cover { width: 100%; aspect-ratio: 1; margin-bottom: var(--space-2); border-radius: var(--radius); object-fit: cover; background: var(--bone-dim); }
+.year-card-year { font-size: 3rem; }
+.year-card-name { font-size: var(--text-sm); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.year-card-artist { color: #55544f; font-size: var(--text-xs); }
+
+/* Al colocarla, la carta se da la vuelta y muestra si encaja. */
+.year-card.correct, .year-card.wrong { animation: flip 520ms var(--ease); }
+.year-card.correct { box-shadow: inset 0 0 0 3px var(--good); }
+.year-card.wrong { box-shadow: inset 0 0 0 3px var(--bad); }
+.year-card.correct .year-card-year { color: #2f7a43; }
+.year-card.wrong .year-card-year { color: #b2412c; }
+
+@keyframes flip {
+    from { transform: perspective(600px) rotateY(90deg); opacity: 0.2; }
+}
+
+
+/* ---------- Fin ---------- */
+
+.hipster-over {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8) 0;
+    text-align: center;
+    animation: screen-in var(--slow) var(--ease);
+}
+
+.hipster-over h2 { font-size: clamp(3rem, 2rem + 4vw, 6rem); }
+.hipster-final { color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+.hipster-final strong { display: block; color: var(--bone); font-family: var(--display); font-size: 6rem; font-weight: 400; line-height: 1; }
+.hipster-answer { max-width: 50ch; color: var(--grey); }
+.hipster-over-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-3); }
+
+@media (max-width: 600px) {
+    .hipster-player { padding: var(--space-4); gap: var(--space-4); }
+    .mystery { width: 64px; font-size: 2.75rem; }
+    .hipster-time { display: none; }
+    .year-card { width: 138px; }
+    .year-card-year { font-size: 2.4rem; }
+}

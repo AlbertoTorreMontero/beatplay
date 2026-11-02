@@ -1,0 +1,47 @@
+<div class="game hipster">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="source">Hipster</span>
+            <h1 class="display">Hipster</h1>
+        </div>
+        <div class="stats">
+            <div class="stat"><span>Racha</span><strong data-ref="score">0</strong></div>
+            <div class="stat"><span>Récord</span><strong data-ref="best">0</strong></div>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+    <section data-ref="board" class="hipster-board" aria-label="Partida">
+
+        <div class="hipster-player">
+            <div class="mystery" aria-hidden="true">?</div>
+            <div class="hipster-player-main">
+                <p class="hipster-question">¿De qué año es la canción que suena?</p>
+                <div class="hipster-controls">
+                    <button data-ref="play" class="play-button" type="button" aria-label="Reproducir">▶</button>
+                    <input data-ref="progress" class="progress" type="range" min="0" max="1000" value="0" aria-label="Posición de la canción">
+                    <span class="hipster-time"><span data-ref="time">0:00</span> / <span data-ref="duration">0:00</span></span>
+                </div>
+                <span data-ref="status" class="hipster-status" role="status">Cargando…</span>
+            </div>
+        </div>
+
+        <p class="hipster-help">Pulsa el hueco donde encaja en la línea temporal.</p>
+
+        <div data-ref="timeline" class="timeline"></div>
+
+    </section>
+
+    <section data-ref="over" class="hipster-over hidden" aria-live="polite">
+        <span class="eyebrow" data-ref="record"></span>
+        <h2 data-ref="title" class="display">Te has equivocado</h2>
+        <p class="hipster-final"><strong data-ref="final">0</strong> canciones seguidas</p>
+        <p data-ref="answer" class="hipster-answer"></p>
+        <div class="hipster-over-actions">
+            <button class="btn btn-lg" type="button" data-action="restart">Jugar otra vez</button>
+            <button class="btn btn-outline btn-lg" type="button" data-exit>Volver al menú</button>
+        </div>
+    </section>
+
+</div>

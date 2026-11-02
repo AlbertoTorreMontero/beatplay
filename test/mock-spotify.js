@@ -1,5 +1,5 @@
 // Precarga para tests: sustituye fetch para los hosts de Spotify y deja el servidor funcionar sin red.
-// Uso: node -r ./test/mock-spotify.js server.js
+// Uso: node -r ./test/mock-spotify.js src/server/index.js
 const realFetch = globalThis.fetch;
 const TRACKS_PER_PLAYLIST = 120;
 

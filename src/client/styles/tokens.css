@@ -1,0 +1,60 @@
+/* =========================================================
+   BEATPLAY — TOKENS
+   Fuentes alojadas en el propio servidor y variables de
+   diseño compartidas por la portada, la app y los juegos.
+========================================================= */
+
+@font-face { font-family: "Bebas Neue"; src: url("/assets/fonts/bebas-neue-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Instrument Serif"; src: url("/assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Instrument Serif"; font-style: italic; src: url("/assets/fonts/instrument-serif-latin-400-italic.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "DM Mono"; font-weight: 400; src: url("/assets/fonts/dm-mono-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "DM Mono"; font-weight: 500; src: url("/assets/fonts/dm-mono-latin-500-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Space Grotesk"; font-weight: 400; src: url("/assets/fonts/space-grotesk-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Space Grotesk"; font-weight: 500; src: url("/assets/fonts/space-grotesk-latin-500-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Space Grotesk"; font-weight: 700; src: url("/assets/fonts/space-grotesk-latin-700-normal.woff2") format("woff2"); font-display: swap; }
+
+:root {
+    /* Color */
+    --ink: #0a0a0a;
+    --ink-raised: #131312;
+    --ink-hover: #1a1a19;
+    --line: #2a2a28;
+    --line-strong: #3d3d3a;
+    --bone: #f1f0eb;
+    --bone-dim: #d9d7cf;
+    --grey: #8b8a85;
+    --accent: #8b78a5;
+    --accent-text: #ab9bc6; /* versión legible sobre negro */
+    --good: #8fcf9c;
+    --bad: #ec7a65;
+
+    /* Tipografía */
+    --display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans: "Space Grotesk", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, monospace;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+    --text-h2: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+    --text-h1: clamp(3.5rem, 2.4rem + 6vw, 8.5rem);
+
+    /* Espacio y forma */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 5rem;
+    --page: min(1240px, 100% - 2 * clamp(1.25rem, 4vw, 4.5rem));
+    --radius: 2px;
+
+    /* Movimiento */
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --fast: 160ms;
+    --slow: 420ms;
+}

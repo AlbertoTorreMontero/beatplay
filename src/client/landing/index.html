@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatPlay — Juega con tu música</title>
+    <meta name="description" content="Convierte tus playlists en juegos: Snake, Bingo musical, Hipster y Music Roulette.">
+    <meta name="theme-color" content="#0a0a0a">
+
+    <link rel="preload" href="/assets/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/landing/landing.css">
+</head>
+
+<body>
+
+    <nav class="landing-nav">
+        <div class="logo">BEAT<span>PLAY</span></div>
+        <div class="nav-right">
+            <span class="nav-label">Juegos con tus playlists</span>
+            <a href="/login" class="nav-login">Entrar <span aria-hidden="true">↗</span></a>
+        </div>
+    </nav>
+
+    <p id="authNotice" class="auth-notice" role="alert" hidden></p>
+
+    <main>
+
+        <section class="hero">
+
+            <div class="hero-left">
+
+                <div class="eyebrow">MUSIC × GAMES</div>
+
+                <h1>
+                    <span class="title-play">PLAY</span>
+                    <span class="title-your">YOUR</span>
+                    <span class="title-music">MUSIC.</span>
+                </h1>
+
+                <div class="description">
+                    <p class="description-main">
+                        Tus playlists de <span data-provider-name>Spotify</span>,
+                        <br>
+                        convertidas en juegos.
+                    </p>
+                    <p class="description-meta">Snake / Bingo / Hipster / Music Roulette</p>
+                </div>
+
+                <a href="/login" class="main-button">
+                    <span>Entrar con <span data-provider-name>Spotify</span></span>
+                    <span class="button-arrow" aria-hidden="true">↗</span>
+                </a>
+
+            </div>
+
+            <div class="hero-right" aria-hidden="true">
+                <div class="poster">
+                    <div class="poster-top">
+                        <span>BP — 001</span>
+                        <span>EST. 2026</span>
+                    </div>
+                    <div class="poster-center">
+                        <div class="poster-circle"></div>
+                        <div class="poster-word poster-your">YOUR</div>
+                        <div class="poster-word poster-music">MUSIC</div>
+                        <div class="poster-small">YOUR RULES</div>
+                    </div>
+                    <div class="poster-bottom">
+                        <span>BEATPLAY</span>
+                        <span>4 JUEGOS</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <section class="games" id="juegos">
+
+            <div class="section-header">
+                <h2>Cuatro juegos</h2>
+                <span class="section-meta">Una cuenta, todas tus playlists</span>
+            </div>
+
+            <div class="games-grid">
+
+                <a class="game-card" href="/login">
+                    <span class="game-info">
+                        <span class="game-type">Arcade · 1 jugador</span>
+                        <span class="game-title">SNAKE</span>
+                        <span class="game-text">Cada portada que comes cambia la canción. En modo Synth, la serpiente acelera con ella.</span>
+                    </span>
+                </a>
+
+                <a class="game-card" href="/login">
+                    <span class="game-info">
+                        <span class="game-type">Fiesta · en grupo</span>
+                        <span class="game-title">BINGO</span>
+                        <span class="game-text">Imprime cartones con tus canciones y canta el bingo con la música sonando.</span>
+                    </span>
+                </a>
+
+                <a class="game-card" href="/login">
+                    <span class="game-info">
+                        <span class="game-type">Quiz · 1 jugador</span>
+                        <span class="game-title">HIPSTER</span>
+                        <span class="game-text">Escucha y coloca cada canción en su año. Un fallo y se acaba la racha.</span>
+                    </span>
+                </a>
+
+                <a class="game-card" href="/login">
+                    <span class="game-info">
+                        <span class="game-type">Online · hasta 10</span>
+                        <span class="game-title">ROULETTE</span>
+                        <span class="game-text">Cinco portadas de la playlist de alguien. Quince segundos para adivinar de quién es.</span>
+                    </span>
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <section class="final">
+            <h2>YOUR PLAYLIST. <em>YOUR GAME.</em></h2>
+            <a href="/login" class="final-button">
+                <span>Empezar a jugar</span>
+                <span aria-hidden="true">↗</span>
+            </a>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <span>BEATPLAY © 2026</span>
+        <span>Hecho para gente con playlists</span>
+        <span>Música de <span data-provider-name>Spotify</span></span>
+    </footer>
+
+    <script type="module" src="/landing/landing.js"></script>
+
+</body>
+
+</html>

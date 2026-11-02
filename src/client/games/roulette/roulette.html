@@ -1,0 +1,108 @@
+<div class="game roulette">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow">Multijugador</span>
+            <h1 class="display">Music Roulette</h1>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+
+    <!-- Entrada -->
+    <section data-view="lobby" class="rl-view rl-lobby">
+        <p class="lead">Cinco portadas de la playlist de alguien. Quince segundos para adivinar de quién es.</p>
+
+        <div class="rl-entry">
+            <div class="field">
+                <label for="rlName">Tu nombre</label>
+                <input id="rlName" data-ref="name" class="input" maxlength="20" autocomplete="nickname" placeholder="Cómo te verán los demás">
+            </div>
+
+            <div class="rl-entry-options">
+                <div class="rl-option">
+                    <h2>Crea una sala</h2>
+                    <p class="muted">Te damos un código para que entren tus amigos.</p>
+                    <button class="btn btn-lg" type="button" data-action="create">Crear sala</button>
+                </div>
+
+                <form class="rl-option" data-ref="joinForm">
+                    <h2>Únete a una</h2>
+                    <label for="rlCode" class="muted">Código de 5 letras</label>
+                    <div class="rl-join">
+                        <input id="rlCode" data-ref="code" class="input rl-code-input" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12">
+                        <button class="btn btn-outline btn-lg" type="submit">Entrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Sala -->
+    <section data-view="room" class="rl-view hidden">
+
+        <div class="rl-room-top">
+            <div>
+                <span class="eyebrow">Código de la sala</span>
+                <div data-ref="roomCode" class="rl-code display">-----</div>
+                <div class="rl-share">
+                    <button class="btn btn-outline" type="button" data-action="copy-link">Copiar enlace</button>
+                    <button class="btn btn-ghost" type="button" data-action="copy-code">Copiar código</button>
+                </div>
+            </div>
+            <div class="rl-count"><strong data-ref="count" class="display">1/10</strong><span>jugadores</span></div>
+        </div>
+
+        <div class="rl-room-grid">
+            <div>
+                <h2 class="rl-subtitle">En la sala</h2>
+                <ul data-ref="players" class="rl-players" aria-live="polite"></ul>
+            </div>
+            <div>
+                <h2 class="rl-subtitle">Tu playlist</h2>
+                <p data-ref="playlistStatus" class="rl-status">Elige una. Nadie verá cuál es.</p>
+                <div data-ref="playlists" class="playlists rl-playlists"></div>
+            </div>
+        </div>
+
+        <div class="start-bar">
+            <p data-ref="hint" class="selection">Esperando a que todos elijan.</p>
+            <button class="btn btn-lg" type="button" data-action="start" data-ref="start" disabled>Empezar partida</button>
+        </div>
+    </section>
+
+
+    <!-- Ronda -->
+    <section data-view="round" class="rl-view hidden">
+        <div class="rl-round-top">
+            <span data-ref="round" class="eyebrow">Ronda 1 de 5</span>
+            <span data-ref="seconds" class="rl-seconds display" role="timer">15</span>
+        </div>
+        <div class="rl-timer"><div data-ref="timerBar"></div></div>
+
+        <div data-ref="covers" class="rl-covers"></div>
+
+        <h2 data-ref="question" class="rl-question" aria-live="polite">¿De quién es esta música?</h2>
+        <div data-ref="answers" class="rl-answers" role="group" aria-label="Jugadores"></div>
+    </section>
+
+
+    <!-- Resultado de ronda -->
+    <section data-view="results" class="rl-view rl-results hidden">
+        <span data-ref="resultsRound" class="eyebrow"></span>
+        <h2 class="rl-reveal" aria-live="polite">Era de <span data-ref="owner" class="display">—</span></h2>
+        <ol data-ref="scores" class="rl-scores"></ol>
+        <p class="muted">La siguiente ronda empieza en unos segundos.</p>
+    </section>
+
+
+    <!-- Final -->
+    <section data-view="final" class="rl-view rl-results hidden">
+        <span class="eyebrow">Clasificación final</span>
+        <h2 class="rl-reveal">Gana <span data-ref="winner" class="display">—</span></h2>
+        <ol data-ref="finalScores" class="rl-scores"></ol>
+        <button class="btn btn-lg" type="button" data-action="again" data-ref="again">Otra partida</button>
+    </section>
+
+</div>

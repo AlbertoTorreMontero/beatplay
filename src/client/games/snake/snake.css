@@ -1,0 +1,93 @@
+/* =========================================================
+   SNAKE
+========================================================= */
+
+.now-playing {
+    flex: 1 1 240px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.now-playing img { width: 52px; height: 52px; border-radius: var(--radius); object-fit: cover; }
+.now-playing div { display: grid; min-width: 0; }
+.now-playing strong, .now-playing span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.now-playing strong { font-weight: 500; }
+.now-playing span { color: var(--grey); font-size: var(--text-sm); }
+
+.snake-board {
+    position: relative;
+    width: min(100%, 960px, (100dvh - 220px) * 4 / 3);
+    margin: 0 auto;
+}
+
+.snake-board canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    touch-action: none;
+}
+
+.snake-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: rgb(10 10 10 / 0.86);
+    backdrop-filter: blur(4px);
+    text-align: center;
+    animation: screen-in var(--slow) var(--ease);
+}
+
+.snake-overlay h2 { font-size: clamp(3rem, 2rem + 4vw, 6rem); }
+
+.snake-hint { max-width: 40ch; color: var(--bone-dim); }
+.snake-keys { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+
+.snake-final { color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+.snake-final strong { display: block; color: var(--bone); font-family: var(--display); font-size: 5rem; font-weight: 400; line-height: 1; }
+
+.snake-over-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+
+/* Cruceta: solo en pantallas táctiles. */
+.snake-pad {
+    display: none;
+    grid-template-areas: ". up ." "left down right";
+    grid-template-columns: repeat(3, 64px);
+    gap: var(--space-2);
+    justify-content: center;
+}
+
+.snake-pad button {
+    height: 56px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    font-size: 1.4rem;
+    touch-action: manipulation;
+}
+
+.snake-pad button:active { background: var(--bone); color: var(--ink); }
+.snake-pad [data-steer="up"] { grid-area: up; }
+.snake-pad [data-steer="left"] { grid-area: left; }
+.snake-pad [data-steer="down"] { grid-area: down; }
+.snake-pad [data-steer="right"] { grid-area: right; }
+
+@media (pointer: coarse) {
+    .snake-pad { display: grid; }
+    .snake-keys { display: none; }
+}
+
+@media (max-width: 600px) {
+    .snake-overlay { gap: var(--space-3); padding: var(--space-3); }
+    .snake-overlay h2 { font-size: 2.75rem; }
+    .snake-hint { display: none; }
+    .snake-overlay .btn-lg { min-height: 48px; }
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>BeatPlay — Juegos musicales</title>
+    <meta name="description" content="Juegos con tus playlists: Snake, Bingo, Hipster y Music Roulette.">
+    <meta name="theme-color" content="#0a0a0a">
+
+    <link rel="preload" href="/assets/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/app/app.css">
+    <link rel="stylesheet" href="/games/snake/snake.css">
+    <link rel="stylesheet" href="/games/bingo/bingo.css">
+    <link rel="stylesheet" href="/games/hipster/hipster.css">
+    <link rel="stylesheet" href="/games/roulette/roulette.css">
+</head>
+
+<body>
+    <main>
+
+        <!-- Arranque: hasta saber si hay sesión -->
+        <section id="bootScreen" class="screen boot" aria-label="Cargando">
+            <div class="logo">BEAT<span>PLAY</span></div>
+        </section>
+
+
+        <!-- Login -->
+        <section id="loginScreen" class="screen login hidden" aria-labelledby="loginTitle">
+            <div class="login-inner">
+                <div class="logo">BEAT<span>PLAY</span></div>
+                <h1 id="loginTitle" class="display">PLAY YOUR MUSIC.</h1>
+                <p class="lead">Entra con tu cuenta de <span data-provider-name>Spotify</span> para jugar con tus playlists.</p>
+                <a href="/login" class="btn btn-lg">Entrar con <span data-provider-name>Spotify</span></a>
+            </div>
+        </section>
+
+
+        <!-- Menú -->
+        <section id="menuScreen" class="screen hidden" aria-labelledby="menuTitle">
+            <div class="menu">
+
+                <header class="topbar">
+                    <div class="logo">BEAT<span>PLAY</span></div>
+                    <div class="topbar-right">
+                        <span id="playerStatus" class="player-status" role="status">Preparando el reproductor</span>
+                        <span id="userName" class="user-name"></span>
+                        <button id="logoutButton" class="btn btn-ghost" type="button">Salir</button>
+                    </div>
+                </header>
+
+                <h1 id="menuTitle" class="menu-title display">Tu juego. <em>Tu música.</em></h1>
+
+                <div class="games" role="radiogroup" aria-label="Juego">
+
+                    <button class="game-card" type="button" role="radio" data-game="snake">
+                        <span class="game-card-meta">Arcade · 1 jugador</span>
+                        <span class="game-card-title display">Snake</span>
+                        <span class="game-card-text">Cada portada que comes cambia la canción.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="bingo">
+                        <span class="game-card-meta">Fiesta · en grupo</span>
+                        <span class="game-card-title display">Bingo</span>
+                        <span class="game-card-text">Cartones para imprimir y canciones para cantar.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="hipster">
+                        <span class="game-card-meta">Quiz · 1 jugador</span>
+                        <span class="game-card-title display">Hipster</span>
+                        <span class="game-card-text">Coloca cada canción en su año.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="roulette">
+                        <span class="game-card-meta">Online · hasta 10</span>
+                        <span class="game-card-title display">Roulette</span>
+                        <span class="game-card-text">Adivina de quién es cada playlist.</span>
+                    </button>
+
+                </div>
+
+                <section class="setup" aria-labelledby="setupTitle">
+
+                    <div class="setup-head">
+                        <h2 id="setupTitle" class="setup-title">Elige una playlist</h2>
+
+                        <div id="hipsterSource" class="segmented hidden" role="group" aria-label="Canciones de Hipster">
+                            <button type="button" data-source="user" aria-pressed="true">Tu playlist</button>
+                            <button type="button" data-source="official" aria-pressed="false">Selección oficial</button>
+                        </div>
+                    </div>
+
+                    <p id="setupNote" class="setup-note hidden"></p>
+
+                    <div id="playlistList" class="playlists"></div>
+
+                </section>
+
+                <div class="start-bar">
+                    <p id="selectionText" class="selection" aria-live="polite">Elige una playlist</p>
+                    <button id="startButton" class="btn btn-lg" type="button" disabled>Jugar a Snake</button>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Juego en curso: cada juego monta aquí su HTML -->
+        <section id="gameScreen" class="screen hidden" aria-live="off"></section>
+
+    </main>
+
+    <script type="module" src="/app/app.js"></script>
+</body>
+</html>

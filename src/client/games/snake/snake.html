@@ -1,0 +1,57 @@
+<div class="game snake">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="playlist">Snake</span>
+            <h1 class="display">Snake</h1>
+        </div>
+
+        <div class="now-playing" aria-live="polite">
+            <img data-ref="cover" alt="" hidden>
+            <div>
+                <strong data-ref="track">Elige modo y empieza</strong>
+                <span data-ref="artist"></span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><span>Puntos</span><strong data-ref="score">0</strong></div>
+            <div class="stat"><span>Récord</span><strong data-ref="best">0</strong></div>
+        </div>
+
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+    <div class="snake-board">
+        <canvas data-ref="canvas" role="img" aria-label="Tablero de Snake. Muévete con las flechas, WASD, deslizando o con los botones."></canvas>
+
+        <div class="snake-overlay" data-ref="ready">
+            <h2 class="display">¿Listo?</h2>
+            <div class="segmented" role="group" aria-label="Modo de juego">
+                <button type="button" data-mode="classic" aria-pressed="true">Clásico</button>
+                <button type="button" data-mode="synth" aria-pressed="false">Synth</button>
+            </div>
+            <p data-ref="hint" class="snake-hint"></p>
+            <button class="btn btn-lg" type="button" data-action="start">Empezar</button>
+            <p class="snake-keys">Flechas o WASD · desliza en el móvil</p>
+        </div>
+
+        <div class="snake-overlay hidden" data-ref="over" role="alert">
+            <span class="eyebrow" data-ref="record"></span>
+            <h2 class="display">Fin de la partida</h2>
+            <p class="snake-final"><strong data-ref="final">0</strong> portadas</p>
+            <div class="snake-over-actions">
+                <button class="btn btn-lg" type="button" data-action="start">Otra partida</button>
+                <button class="btn btn-outline btn-lg" type="button" data-action="menu">Cambiar modo</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="snake-pad" aria-label="Controles">
+        <button type="button" data-steer="up" aria-label="Arriba">↑</button>
+        <button type="button" data-steer="left" aria-label="Izquierda">←</button>
+        <button type="button" data-steer="down" aria-label="Abajo">↓</button>
+        <button type="button" data-steer="right" aria-label="Derecha">→</button>
+    </div>
+
+</div>

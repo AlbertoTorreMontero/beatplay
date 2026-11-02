@@ -1,0 +1,259 @@
+/* =========================================================
+   BEATPLAY — BASE Y COMPONENTES COMPARTIDOS
+========================================================= */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; color-scheme: dark; }
+
+body {
+    min-height: 100dvh;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--sans);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+img { display: block; max-width: 100%; }
+
+button, input, select { font: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: inherit; }
+
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
+
+.hidden, [hidden] { display: none !important; }
+
+.visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* ---------- Tipografía ---------- */
+
+.eyebrow {
+    display: block;
+    color: var(--accent-text);
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+}
+
+.display {
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: 0.005em;
+}
+
+.lead {
+    max-width: 34ch;
+    color: var(--bone-dim);
+    font-family: var(--serif);
+    font-size: var(--text-lead);
+    line-height: 1.2;
+}
+
+.muted { color: var(--grey); }
+
+
+/* ---------- Botones ---------- */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 48px;
+    padding: 0 var(--space-5);
+    border: 1px solid var(--bone);
+    border-radius: var(--radius);
+    background: var(--bone);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--fast), color var(--fast), border-color var(--fast), transform var(--fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: var(--bone); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.35; }
+
+.btn-outline { background: transparent; color: var(--bone); border-color: var(--line-strong); }
+.btn-outline:hover:not(:disabled) { background: var(--ink-hover); border-color: var(--bone); color: var(--bone); }
+
+.btn-ghost { min-height: 40px; padding: 0 var(--space-3); background: transparent; border-color: transparent; color: var(--grey); }
+.btn-ghost:hover:not(:disabled) { background: transparent; border-color: transparent; color: var(--bone); }
+
+.btn-lg { min-height: 60px; padding: 0 var(--space-6); font-size: var(--text-base); }
+
+/* Botón ocupado: el texto se mantiene y aparece un indicador. */
+.btn[aria-busy="true"]::after {
+    content: "";
+    width: 14px; height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ---------- Formularios ---------- */
+
+.field { display: grid; gap: var(--space-2); }
+
+.field label { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+
+.input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    transition: border-color var(--fast);
+}
+
+.input:hover { border-color: var(--grey); }
+.input:focus { outline: none; border-color: var(--bone); }
+
+
+/* ---------- Segmentado (elegir una opción) ---------- */
+
+.segmented { display: inline-flex; padding: 3px; border: 1px solid var(--line-strong); border-radius: var(--radius); }
+
+.segmented button {
+    min-height: 38px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius);
+    color: var(--grey);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    transition: background var(--fast), color var(--fast);
+}
+
+.segmented button:hover { color: var(--bone); }
+.segmented button[aria-pressed="true"] { background: var(--bone); color: var(--ink); }
+
+
+/* ---------- Cabecera de juego ---------- */
+
+.game {
+    width: var(--page);
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: var(--space-5) 0 var(--space-7);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.game-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-5) var(--space-6);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--line);
+}
+
+.game-head-title { flex: 1 1 260px; min-width: 0; }
+
+.game-head-title h1 {
+    font-size: clamp(2.75rem, 2rem + 3vw, 4.5rem);
+    overflow-wrap: anywhere;
+}
+
+.game-head-title .eyebrow { margin-bottom: var(--space-2); }
+
+.stats { display: flex; gap: var(--space-2); }
+
+/* En el móvil: título y Salir arriba; el resto debajo, a todo el ancho. */
+@media (max-width: 600px) {
+    .game { padding-top: var(--space-4); gap: var(--space-5); }
+    .game-head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-4); }
+    .game-head > [data-exit] { grid-column: 2; grid-row: 1; }
+    .game-head > :not(.game-head-title):not([data-exit]) { grid-column: 1 / -1; }
+    .stat { flex: 1; }
+}
+
+.stat {
+    min-width: 92px;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.stat span { display: block; color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.stat strong { display: block; font-family: var(--display); font-size: 2.25rem; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* Un número que cambia da un pequeño salto: se nota sin distraer. */
+.bump { animation: bump 320ms var(--ease); }
+@keyframes bump { 40% { transform: scale(1.18); color: var(--accent-text); } }
+
+
+/* ---------- Estados ---------- */
+
+.state {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--grey);
+}
+
+.state strong { color: var(--bone); font-weight: 500; }
+
+.skeleton {
+    background: linear-gradient(90deg, var(--ink-raised) 0%, var(--ink-hover) 50%, var(--ink-raised) 100%) 0 0 / 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+
+/* ---------- Aviso flotante ---------- */
+
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: max(var(--space-5), env(safe-area-inset-bottom));
+    z-index: 100;
+    width: max-content;
+    max-width: min(520px, calc(100% - 2rem));
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--bone);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    box-shadow: 0 12px 40px rgb(0 0 0 / 0.5);
+    opacity: 0;
+    transform: translate(-50%, 12px);
+    pointer-events: none;
+    transition: opacity var(--fast), transform var(--slow) var(--ease);
+}
+
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.error { background: var(--bad); border-color: var(--bad); }

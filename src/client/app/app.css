@@ -1,0 +1,251 @@
+/* =========================================================
+   BEATPLAY — APP (arranque, login y menú)
+========================================================= */
+
+.screen { min-height: 100dvh; }
+.screen:focus { outline: none; }
+
+/* Al cambiar de pantalla el contenido entra de forma breve: es la única transición de página. */
+.screen:not(.hidden) { animation: screen-in var(--slow) var(--ease); }
+@keyframes screen-in { from { opacity: 0; transform: translateY(8px); } }
+
+.logo { font-family: var(--display); font-size: 2rem; line-height: 1; letter-spacing: 0.02em; }
+.logo span { color: var(--accent-text); }
+
+
+/* ---------- Arranque y login ---------- */
+
+.boot { display: grid; place-items: center; }
+.boot .logo { font-size: 3rem; animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.35; } }
+
+.login { display: grid; place-items: center; padding: var(--space-6); }
+.login-inner { width: min(640px, 100%); display: grid; justify-items: start; gap: var(--space-5); }
+.login h1 { font-size: var(--text-h1); margin-top: var(--space-6); }
+.login .lead { margin-bottom: var(--space-3); }
+
+
+/* ---------- Menú ---------- */
+
+.menu {
+    width: var(--page);
+    margin: 0 auto;
+    padding-top: var(--space-5);
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--line);
+}
+
+.topbar-right { display: flex; align-items: center; gap: var(--space-4); min-width: 0; }
+
+.user-name {
+    max-width: 18ch;
+    overflow: hidden;
+    color: var(--bone-dim);
+    font-size: var(--text-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--grey);
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+}
+
+.player-status::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--grey);
+    animation: breathe 1.6s ease-in-out infinite;
+}
+
+.player-status[data-state="ok"]::before { background: var(--good); animation: none; }
+.player-status[data-state="off"]::before { background: var(--bad); animation: none; }
+
+.menu-title {
+    margin: var(--space-8) 0 var(--space-7);
+    font-size: var(--text-h1);
+}
+
+.menu-title em {
+    color: var(--accent-text);
+    font-family: var(--serif);
+    font-size: 0.82em;
+    letter-spacing: -0.01em;
+}
+
+
+/* ---------- Juegos ---------- */
+
+.games {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+}
+
+.game-card {
+    position: relative;
+    min-height: 240px;
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    transition: background var(--fast), color var(--fast);
+}
+
+.game-card:hover { background: var(--ink-hover); }
+
+.game-card-meta { margin-bottom: auto; color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.game-card-title { font-size: clamp(3rem, 2.2rem + 2vw, 4.25rem); }
+.game-card-text { min-height: 2.8em; max-width: 26ch; color: var(--grey); font-size: var(--text-sm); line-height: 1.4; }
+
+/* El juego elegido se invierte: es el gesto visual de toda la app. */
+.game-card[aria-checked="true"] { background: var(--bone); color: var(--ink); }
+.game-card[aria-checked="true"] .game-card-meta,
+.game-card[aria-checked="true"] .game-card-text { color: #55544f; }
+
+.game-card[aria-checked="true"]::after {
+    content: "";
+    position: absolute;
+    top: var(--space-5);
+    right: var(--space-5);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+
+/* ---------- Configuración y playlists ---------- */
+
+.setup { padding: var(--space-7) 0 var(--space-8); }
+
+.setup-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.setup-title { font-family: var(--display); font-size: clamp(2.25rem, 1.8rem + 1.5vw, 3rem); font-weight: 400; line-height: 1; }
+
+.setup-note { max-width: 60ch; color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+
+.playlists {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: var(--space-5) var(--space-4);
+}
+
+.playlist {
+    display: grid;
+    gap: var(--space-1);
+    text-align: left;
+    border-radius: var(--radius);
+}
+
+.playlist-cover {
+    position: relative;
+    aspect-ratio: 1;
+    margin-bottom: var(--space-2);
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+    transition: outline-color var(--fast);
+}
+
+.playlist-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--slow) var(--ease), filter var(--fast); }
+
+.playlist-initial {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--line-strong);
+    font-family: var(--display);
+    font-size: 5rem;
+}
+
+.playlist:hover .playlist-cover img { transform: scale(1.04); }
+.playlist:focus-visible { outline: none; }
+.playlist:focus-visible .playlist-cover { outline-color: var(--accent-text); }
+
+.playlist[aria-pressed="true"] .playlist-cover { outline-color: var(--bone); }
+.playlist[aria-pressed="true"] .playlist-cover::after {
+    content: "✓";
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 28px; height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bone);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+
+.playlist-name { font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
+.playlist-meta { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+
+.playlist-skeleton { aspect-ratio: 1; border-radius: var(--radius); }
+
+.playlists .state { grid-column: 1 / -1; }
+
+
+/* ---------- Barra de inicio ---------- */
+
+.start-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) 0 max(var(--space-4), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: rgb(10 10 10 / 0.92);
+    backdrop-filter: blur(10px);
+}
+
+.selection { min-width: 0; overflow: hidden; color: var(--bone-dim); text-overflow: ellipsis; white-space: nowrap; }
+
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 960px) {
+    .games { grid-template-columns: repeat(2, 1fr); }
+    .game-card { min-height: 190px; }
+}
+
+@media (max-width: 600px) {
+    .menu-title { margin: var(--space-7) 0 var(--space-6); }
+    .user-name, .player-status { font-size: 0; gap: 0; }
+    .games { grid-template-columns: 1fr 1fr; }
+    .game-card { min-height: 150px; padding: var(--space-4); }
+    .game-card-text { display: none; }
+    .game-card[aria-checked="true"]::after { display: none; }
+    .playlists { grid-template-columns: repeat(2, 1fr); }
+    .start-bar .btn { flex: 1; }
+    .selection { display: none; }
+}

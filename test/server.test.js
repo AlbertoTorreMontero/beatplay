@@ -1,4 +1,4 @@
-// Tests de integración: arrancan server.js con Spotify simulado (test/mock-spotify.js).
+// Tests de integración: arrancan src/server/index.js con Spotify simulado (test/mock-spotify.js).
 // Ejecutar con: npm test
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
@@ -36,7 +36,7 @@ async function startServer(extraEnv = {}) {
         ...extraEnv
     };
 
-    const child = spawn("node", ["server.js"], { cwd: ROOT, env });
+    const child = spawn("node", ["src/server/index.js"], { cwd: ROOT, env });
     const spotifyCalls = [];
     let output = "";
 
@@ -143,7 +143,7 @@ describe("sesiones y OAuth", () => {
 
     it("un visitante sin cookie no recibe ningún token", async () => {
         const stranger = browser(server.base);
-        assert.equal((await stranger("/auth/token")).status, 401);
+        assert.equal((await stranger("/api/player/token")).status, 401);
         assert.equal((await stranger("/api/playlists")).status, 401);
     });
 
@@ -156,18 +156,18 @@ describe("sesiones y OAuth", () => {
         assert.equal((await alice.login("alice")).headers.get("location"), "/app");
         await bob.login("bob");
 
-        const aliceToken = (await (await alice("/auth/token")).json()).access_token;
-        const bobToken = (await (await bob("/auth/token")).json()).access_token;
+        const aliceToken = (await (await alice("/api/player/token")).json()).accessToken;
+        const bobToken = (await (await bob("/api/player/token")).json()).accessToken;
         assert.match(aliceToken, /alice/);
         assert.match(bobToken, /bob/);
 
         assert.equal((await (await alice("/api/playlists")).json())[0].name, "alice playlist");
         assert.equal((await (await bob("/api/playlists")).json())[0].name, "bob playlist");
-        assert.equal((await stranger("/auth/token")).status, 401);
+        assert.equal((await stranger("/api/player/token")).status, 401);
 
         await alice("/auth/logout", { method: "POST" });
-        assert.equal((await alice("/auth/token")).status, 401);
-        assert.equal((await bob("/auth/token")).status, 200, "el logout de uno no afecta al otro");
+        assert.equal((await alice("/api/player/token")).status, 401);
+        assert.equal((await bob("/api/player/token")).status, 200, "el logout de uno no afecta al otro");
     });
 
     it("la cookie de sesión es HttpOnly y SameSite=Lax", async () => {
@@ -222,9 +222,9 @@ describe("renovación de token", () => {
         try {
             const carol = browser(server.base);
             await carol.login("carol");
-            const first = (await (await carol("/auth/token")).json()).access_token;
+            const first = (await (await carol("/api/player/token")).json()).accessToken;
             await sleep(1300);
-            const second = (await (await carol("/auth/token")).json()).access_token;
+            const second = (await (await carol("/api/player/token")).json()).accessToken;
             assert.notEqual(first, second);
             assert.equal((await carol("/api/me")).status, 200);
         } finally {
@@ -245,7 +245,7 @@ describe("canciones y Hipster", () => {
     after(() => server.stop());
 
     it("Bingo recibe la playlist completa sin duplicados", async () => {
-        const tracks = await (await user("/api/playlists/pl-dana/catalog")).json();
+        const tracks = await (await user("/api/playlists/pl-dana/tracks?all=1")).json();
         assert.equal(tracks.length, 120);
         assert.equal(new Set(tracks.map(track => track.id)).size, 120);
     });
@@ -253,7 +253,7 @@ describe("canciones y Hipster", () => {
     it("Hipster devuelve una muestra acotada, con año, sin bajar la playlist entera", async () => {
 
         const before = server.spotifyCalls.length;
-        const tracks = await (await user("/api/playlists/pl-dana/hipster")).json();
+        const tracks = await (await user("/api/playlists/pl-dana/tracks?dated=1")).json();
         const calls = server.spotifyCalls.slice(before).filter(call => call.includes("/playlists/"));
 
         assert.equal(tracks.length, 60);
@@ -263,12 +263,12 @@ describe("canciones y Hipster", () => {
 
     it("reiniciar Hipster no vuelve a pedir nada a Spotify (caché)", async () => {
 
-        await user("/api/playlists/pl-dana/hipster");
+        await user("/api/playlists/pl-dana/tracks?dated=1");
         const before = server.spotifyCalls.length;
 
         // Dos muestras más: las páginas posibles ya están en caché.
-        await user("/api/playlists/pl-dana/hipster");
-        await user("/api/playlists/pl-dana/hipster");
+        await user("/api/playlists/pl-dana/tracks?dated=1");
+        await user("/api/playlists/pl-dana/tracks?dated=1");
 
         assert.ok(server.spotifyCalls.length - before <= 1, "se esperaba servir casi todo desde caché");
     });
@@ -277,7 +277,7 @@ describe("canciones y Hipster", () => {
         const erin = browser(server.base);
         await erin.login("erin");
         const before = server.spotifyCalls.length;
-        const tracks = await (await erin("/api/playlists/pl-dana/hipster")).json();
+        const tracks = await (await erin("/api/playlists/pl-dana/tracks?dated=1")).json();
         assert.ok(server.spotifyCalls.length > before, "erin debe pedir a Spotify con su propio token");
         assert.ok(tracks.every(track => track.id.startsWith("erin")));
     });

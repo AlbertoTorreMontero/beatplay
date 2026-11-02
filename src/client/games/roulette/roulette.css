@@ -1,0 +1,140 @@
+/* =========================================================
+   MUSIC ROULETTE
+========================================================= */
+
+.rl-view { display: grid; gap: var(--space-6); align-content: start; }
+
+/* ---------- Entrada ---------- */
+
+.rl-entry { display: grid; gap: var(--space-6); max-width: 900px; }
+.rl-entry > .field { max-width: 420px; }
+
+.rl-entry-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.rl-option { display: grid; align-content: start; gap: var(--space-3); padding: var(--space-6); }
+.rl-option + .rl-option { border-left: 1px solid var(--line); }
+.rl-option h2 { font-family: var(--display); font-size: 2.5rem; font-weight: 400; line-height: 1; }
+.rl-option > .btn { justify-self: start; margin-top: var(--space-2); }
+
+.rl-join { display: flex; gap: var(--space-2); }
+.rl-code-input { min-height: 60px; font-family: var(--mono); font-size: 1.4rem; letter-spacing: 0.3em; text-transform: uppercase; }
+
+
+/* ---------- Sala ---------- */
+
+.rl-room-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
+
+.rl-code { font-size: clamp(4.5rem, 3rem + 7vw, 9rem); letter-spacing: 0.06em; line-height: 0.9; margin: var(--space-2) 0 var(--space-3); }
+.rl-share { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.rl-count { display: grid; justify-items: end; }
+.rl-count strong { font-size: 4rem; font-weight: 400; line-height: 1; }
+.rl-count span { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+
+.rl-room-grid { display: grid; grid-template-columns: minmax(240px, 1fr) 2fr; gap: var(--space-7); }
+
+.rl-subtitle { margin-bottom: var(--space-4); font-family: var(--display); font-size: 2rem; font-weight: 400; line-height: 1; }
+.rl-status { margin-bottom: var(--space-4); color: var(--bone-dim); }
+
+.rl-players { list-style: none; border-top: 1px solid var(--line); }
+
+.rl-player {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line);
+    animation: screen-in var(--slow) var(--ease);
+}
+
+.rl-player-name small { color: var(--grey); }
+.rl-player-state { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.rl-player.ready .rl-player-state { color: var(--good); }
+.rl-player.offline { opacity: 0.5; }
+
+.rl-playlists { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+
+
+/* ---------- Ronda ---------- */
+
+.rl-round-top { display: flex; align-items: flex-end; justify-content: space-between; }
+.rl-seconds { font-size: 4.5rem; line-height: 0.8; font-variant-numeric: tabular-nums; transition: color var(--fast); }
+.rl-seconds.urgent { color: var(--bad); }
+
+.rl-timer { height: 4px; margin-top: calc(var(--space-6) * -1 + var(--space-3)); background: var(--line); overflow: hidden; }
+.rl-timer div { height: 100%; background: var(--bone); transform-origin: left; transition: transform 100ms linear, background var(--fast); }
+.rl-timer div.urgent { background: var(--bad); }
+
+.rl-covers { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); }
+
+.rl-cover { display: grid; gap: var(--space-2); min-width: 0; animation: deal 480ms var(--ease) backwards; }
+.rl-cover img { width: 100%; aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; background: var(--ink-raised); }
+.rl-cover figcaption { display: grid; min-width: 0; }
+.rl-cover strong, .rl-cover span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rl-cover strong { font-size: var(--text-sm); font-weight: 500; }
+.rl-cover span { color: var(--grey); font-size: var(--text-xs); }
+
+/* Las portadas se reparten como cartas. */
+@keyframes deal { from { opacity: 0; transform: translateY(16px) rotate(-3deg); } }
+
+.rl-question { font-family: var(--serif); font-size: var(--text-lead); font-weight: 400; }
+
+.rl-answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-3); }
+
+.rl-answer {
+    min-height: 64px;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: left;
+    overflow-wrap: anywhere;
+    transition: background var(--fast), color var(--fast), border-color var(--fast);
+}
+
+.rl-answer:hover:not(:disabled) { border-color: var(--bone); background: var(--ink-hover); }
+.rl-answer:disabled { opacity: 0.4; }
+.rl-answer.chosen { opacity: 1; border-color: var(--bone); background: var(--bone); color: var(--ink); }
+
+
+/* ---------- Resultados ---------- */
+
+.rl-results { justify-items: center; text-align: center; padding-top: var(--space-6); }
+
+.rl-reveal { font-family: var(--serif); font-size: var(--text-lead); font-weight: 400; }
+.rl-reveal .display { display: block; margin-top: var(--space-2); font-size: clamp(3.5rem, 2.5rem + 5vw, 7rem); animation: reveal 600ms var(--ease); }
+@keyframes reveal { from { opacity: 0; letter-spacing: 0.3em; } }
+
+.rl-scores { width: min(560px, 100%); list-style: none; border-top: 1px solid var(--line); text-align: left; }
+
+.rl-score {
+    display: grid;
+    grid-template-columns: 1fr auto 72px;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line);
+    animation: screen-in var(--slow) var(--ease) backwards;
+}
+
+.rl-score.leader .rl-score-name { color: var(--accent-text); }
+.rl-score-mark { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.rl-score.correct .rl-score-mark { color: var(--good); }
+.rl-score-points { font-size: 2rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+
+@media (max-width: 760px) {
+    .rl-entry-options { grid-template-columns: 1fr; }
+    .rl-option + .rl-option { border-left: 0; border-top: 1px solid var(--line); }
+    .rl-option { padding: var(--space-5); }
+    .rl-room-grid { grid-template-columns: 1fr; gap: var(--space-6); }
+    .rl-count { justify-items: start; }
+    .rl-covers { grid-template-columns: repeat(3, 1fr); }
+    .rl-answers { grid-template-columns: 1fr 1fr; }
+}

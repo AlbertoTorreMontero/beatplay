@@ -1,0 +1,61 @@
+<div class="game bingo">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="playlist">Bingo musical</span>
+            <h1 class="display">Bingo</h1>
+        </div>
+        <div class="segmented bingo-tabs" role="tablist" aria-label="Sección">
+            <button type="button" role="tab" data-tab="cards" aria-pressed="true" aria-selected="true">Cartones</button>
+            <button type="button" role="tab" data-tab="caller" aria-pressed="false" aria-selected="false">Cantar</button>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+    <!-- Cartones -->
+    <section data-ref="cardsTab" class="bingo-section" role="tabpanel" aria-label="Cartones">
+
+        <form data-ref="form" class="bingo-form">
+            <div class="field">
+                <label for="bingoName">Título en los cartones</label>
+                <input id="bingoName" data-ref="name" class="input" maxlength="40" placeholder="Bingo de verano">
+            </div>
+            <div class="field">
+                <label for="bingoCount">Cartones</label>
+                <input id="bingoCount" data-ref="count" class="input" type="number" min="1" max="60" value="8" inputmode="numeric">
+            </div>
+            <button class="btn" type="submit">Generar cartones</button>
+            <button class="btn btn-outline" type="button" data-action="print" data-ref="print" disabled>Imprimir o guardar PDF</button>
+        </form>
+
+        <p class="bingo-help">Cada cartón tiene 15 canciones en 3 filas, como el bingo de toda la vida. Imprímelos y pasa a <em>Cantar</em> para poner la música.</p>
+
+        <div data-ref="cards" class="bingo-cards"></div>
+    </section>
+
+    <!-- Cantar -->
+    <section data-ref="callerTab" class="bingo-section hidden" role="tabpanel" aria-label="Cantar canciones">
+
+        <div class="caller">
+            <div class="caller-now">
+                <img data-ref="callerCover" class="caller-cover" alt="" hidden>
+                <div class="caller-info" aria-live="polite">
+                    <span class="eyebrow" data-ref="callerCount">Aún no ha sonado nada</span>
+                    <strong data-ref="callerName" class="caller-name display">Pulsa para empezar</strong>
+                    <span data-ref="callerArtist" class="caller-artist"></span>
+                </div>
+            </div>
+            <div class="caller-actions">
+                <button class="btn btn-lg" type="button" data-action="next">Siguiente canción</button>
+                <label class="caller-hide">
+                    <input type="checkbox" data-ref="hide" checked>
+                    Ocultar título hasta la siguiente
+                </label>
+            </div>
+        </div>
+
+        <h2 class="caller-history-title">Ya han sonado</h2>
+        <ol data-ref="history" class="caller-history"></ol>
+    </section>
+
+</div>
