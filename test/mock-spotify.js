@@ -94,6 +94,10 @@ globalThis.fetch = async (url, options = {}) => {
         });
     }
 
+    if (path === "/me/player/devices") {
+        return json({ devices: [{ id: "phone-1", name: `${user} iPhone`, type: "Smartphone", is_active: false, is_restricted: false }] });
+    }
+
     if (path.startsWith("/me/player")) {
         if (process.env.MOCK_LOG && options.body) console.error(`SPOTIFY_BODY ${options.body}`);
         return new Response(null, { status: 204 });

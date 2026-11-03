@@ -20,10 +20,11 @@
  *   listPlaylists(token)           -> [{ id, name, owner, image, tracks }]
  *   getTrackPage(token, id, offset)-> { total, tracks }   el total viene en la misma llamada
  *   readPublicPlaylist?(url)       -> { name, tracks }  playlist pública sin iniciar sesión (invitados)
- *   controls?: { play, transfer }  si el reproductor del cliente necesita al servidor
+ *   controls?: { play, transfer, pause, resume, seek }   si el reproductor del cliente necesita al servidor
+ *   listDevices?(token)            -> [{ id, name, type, active }]  dispositivos (Spotify Connect, móvil)
  *
  * Una canción ("track") siempre tiene esta forma, venga del servicio que venga:
- *   { id, ref, name, artist, album, year, cover, preview }
+ *   { id, ref, name, artist, album, year, cover, preview, duration }
  *   ref     referencia para reproducirla en ese servicio (p. ej. una URI de Spotify)
  *   preview URL de audio corto, si el servicio la da (null si no)
  */

@@ -122,8 +122,11 @@
 .caller-history small { color: var(--grey); }
 
 @media (max-width: 760px) {
-    .bingo-form { grid-template-columns: 1fr 1fr; }
+    .bingo-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); }
     .bingo-form .field:first-child { grid-column: 1 / -1; }
+    .bingo-form .btn { white-space: normal; }
+    .bingo-form [data-action=print] { grid-column: 1 / -1; }
+    .bingo-tabs { justify-self: start; }
     .caller-actions { justify-items: stretch; width: 100%; }
     .caller-cover { width: 80px; height: 80px; }
 }

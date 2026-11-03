@@ -17,7 +17,7 @@ const SCOPES = [
 
 const pageSize = 50;
 
-const ITEM_FIELDS = "total,items(item(id,uri,name,type,is_local,preview_url,artists(name),album(name,release_date,images)))";
+const ITEM_FIELDS = "total,items(item(id,uri,name,type,is_local,preview_url,duration_ms,artists(name),album(name,release_date,images)))";
 
 const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
 
@@ -179,7 +179,8 @@ function toTrack(item) {
         album: item.album?.name || "",
         year: year > 0 ? year : null,
         cover: images[0]?.url || null,
-        preview: item.preview_url || null
+        preview: item.preview_url || null,
+        duration: item.duration_ms || null
     };
 }
 
@@ -317,8 +318,22 @@ const playback = {
     },
 
     // Activa el navegador como dispositivo de Spotify (al conectar): la primera canción arranca antes.
-    transfer: (token, { deviceId }) => api(token, "/me/player", json({ device_ids: [deviceId], play: false }))
+    transfer: (token, { deviceId }) => api(token, "/me/player", json({ device_ids: [deviceId], play: false })),
+
+    // ---- Spotify Connect (móvil): se controla la app de Spotify del propio móvil.
+    pause: (token, { deviceId }) => api(token, `/me/player/pause?device_id=${encodeURIComponent(deviceId)}`, { method: "PUT" }),
+    resume: (token, { deviceId }) => api(token, `/me/player/play?device_id=${encodeURIComponent(deviceId)}`, { method: "PUT" }),
+    seek: (token, { deviceId, positionMs = 0 }) =>
+        api(token, `/me/player/seek?position_ms=${Math.max(0, Math.round(positionMs))}&device_id=${encodeURIComponent(deviceId)}`, { method: "PUT" })
 };
+
+// Dispositivos de Spotify del usuario (para elegir la app de su móvil).
+async function listDevices(token) {
+    const data = await api(token, "/me/player/devices");
+    return (data?.devices || [])
+        .filter(device => device.id && !device.is_restricted)
+        .map(device => ({ id: device.id, name: device.name, type: device.type, active: device.is_active }));
+}
 
 module.exports = {
     id: "spotify",
@@ -337,5 +352,6 @@ module.exports = {
     listPlaylists,
     getTrackPage,
     readPublicPlaylist: readPublicPlaylistCached,
+    listDevices,
     controls: playback
 };

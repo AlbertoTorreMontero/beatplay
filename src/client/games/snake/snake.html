@@ -1,4 +1,4 @@
-<div class="game snake">
+<div class="game fit snake">
 
     <header class="game-head">
         <div class="game-head-title">
@@ -19,30 +19,42 @@
             <div class="stat"><span>Récord</span><strong data-ref="best">0</strong></div>
         </div>
 
-        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+        <div class="snake-head-actions">
+            <button class="btn btn-outline snake-pause" type="button" data-action="pause" aria-label="Pausa">❚❚</button>
+            <button class="btn btn-outline" type="button" data-exit>Salir</button>
+        </div>
     </header>
 
-    <div class="snake-board">
-        <canvas data-ref="canvas" role="img" aria-label="Tablero de Snake. Muévete con las flechas, WASD, deslizando o con los botones."></canvas>
+    <!-- El tablero ocupa el hueco libre; deslizar el dedo por cualquier parte gira la serpiente -->
+    <div class="snake-board" data-ref="board">
+        <div class="snake-stage" data-ref="stage">
+            <canvas data-ref="canvas" role="img" aria-label="Tablero de Snake. Muévete con las flechas, WASD, deslizando el dedo o con los botones."></canvas>
 
-        <div class="snake-overlay" data-ref="ready">
-            <h2 class="display">¿Listo?</h2>
-            <div class="segmented" role="group" aria-label="Modo de juego">
-                <button type="button" data-mode="classic" aria-pressed="true">Clásico</button>
-                <button type="button" data-mode="synth" aria-pressed="false">Synth</button>
+            <div class="snake-overlay" data-ref="ready">
+                <h2 class="display">¿Listo?</h2>
+                <div class="segmented" role="group" aria-label="Modo de juego">
+                    <button type="button" data-mode="classic" aria-pressed="true">Clásico</button>
+                    <button type="button" data-mode="synth" aria-pressed="false">Synth</button>
+                </div>
+                <p data-ref="hint" class="snake-hint"></p>
+                <button class="btn btn-lg" type="button" data-action="start">Empezar</button>
+                <p class="snake-keys snake-keys-desktop">Flechas o WASD · P para pausar</p>
+                <p class="snake-keys snake-keys-touch">Desliza el dedo por el tablero o usa los botones</p>
             </div>
-            <p data-ref="hint" class="snake-hint"></p>
-            <button class="btn btn-lg" type="button" data-action="start">Empezar</button>
-            <p class="snake-keys">Flechas o WASD · desliza en el móvil</p>
-        </div>
 
-        <div class="snake-overlay hidden" data-ref="over" role="alert">
-            <span class="eyebrow" data-ref="record"></span>
-            <h2 class="display">Fin de la partida</h2>
-            <p class="snake-final"><strong data-ref="final">0</strong> portadas</p>
-            <div class="snake-over-actions">
-                <button class="btn btn-lg" type="button" data-action="start">Otra partida</button>
-                <button class="btn btn-outline btn-lg" type="button" data-action="menu">Cambiar modo</button>
+            <div class="snake-overlay hidden" data-ref="paused">
+                <h2 class="display">Pausa</h2>
+                <button class="btn btn-lg" type="button" data-action="resume">Seguir</button>
+            </div>
+
+            <div class="snake-overlay hidden" data-ref="over" role="alert">
+                <span class="eyebrow" data-ref="record"></span>
+                <h2 class="display">Fin de la partida</h2>
+                <p class="snake-final"><strong data-ref="final">0</strong> portadas</p>
+                <div class="snake-over-actions">
+                    <button class="btn btn-lg" type="button" data-action="start">Otra partida</button>
+                    <button class="btn btn-outline btn-lg" type="button" data-action="menu">Cambiar modo</button>
+                </div>
             </div>
         </div>
     </div>

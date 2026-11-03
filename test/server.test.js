@@ -337,6 +337,14 @@ describe("canciones y Hipster", () => {
         assert.equal(body.uris.length, 30);
         assert.equal(body.offset.position, 3);
 
+        // Móvil (Spotify Connect): lista de dispositivos y control remoto.
+        const devices = await (await user("/api/player/devices")).json();
+        assert.equal(devices[0].type, "Smartphone");
+        for (const action of ["pause", "resume", "seek"]) {
+            const res = await user(`/api/player/${action}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "phone-1", positionMs: 1000 }) });
+            assert.equal(res.status, 204, action);
+        }
+
         // Activar el dispositivo al conectar: una llamada.
         const transfer = await user("/api/player/transfer", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "d" }) });
         assert.equal(transfer.status, 204);

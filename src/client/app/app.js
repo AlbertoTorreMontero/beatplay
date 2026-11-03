@@ -286,7 +286,21 @@ async function boot() {
     showScreen("menuScreen");
 
     setupPlayer(me.provider.playback)
-        .then(() => setPlayerStatus("Reproductor listo", true))
+        .then(mode => {
+            if (mode === "spotify-connect") {
+                setPlayerStatus("Suena en tu app de Spotify", true);
+                $("#playerStatus").title = "La música sonará en la app de Spotify de este dispositivo. Ábrela antes de jugar.";
+                // En el móvil se avisa una vez: sin la app de Spotify abierta no sonará nada.
+                try {
+                    if (!sessionStorage.getItem("beatplayConnectHint")) {
+                        sessionStorage.setItem("beatplayConnectHint", "1");
+                        toast("En el móvil la música suena en la app de Spotify: ábrela un momento antes de jugar.");
+                    }
+                } catch { /* sin almacenamiento: no pasa nada */ }
+            } else {
+                setPlayerStatus("Reproductor listo", true);
+            }
+        })
         .catch(error => {
             console.error("Reproductor:", error);
             setPlayerStatus("Sin reproductor", false);

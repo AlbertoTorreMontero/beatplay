@@ -8,10 +8,14 @@ import { refs, toast, pulse, shuffle, store } from "../../lib/ui.js";
 import { tracks as loadTracks } from "../../lib/api.js";
 import { player, positionNow } from "../../lib/player/index.js";
 
-const COLS = 20;
-const ROWS = 15;
+// La rejilla se adapta a la pantalla al entrar: apaisada en el ordenador, vertical en el móvil.
+// Las casillas siempre son cuadradas; CELL es su tamaño interno de dibujo.
+let COLS = 20;
+let ROWS = 15;
 const CELL = 40;
 const TICK = { classic: 130, synthSlow: 150, synthFast: 90 };
+const TOUCH_SLOWER = 15; // con el dedo se reacciona algo más lento que con el teclado
+const SWIPE_PX = 22;
 const BASE_COLOR = { h: 262, s: 22 }; // lila de la marca
 
 const DIRECTIONS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -38,6 +42,10 @@ let frame = null;
 let playback = null;
 let unsubscribe = null;
 let swipe = null;
+let resizer = null;
+let wakeLock = null;
+let coarse = false;
+let gridReady = false;
 
 const images = new Map();
 const palettes = new Map();
@@ -57,15 +65,31 @@ async function mount(container, { playlist }) {
     ui.playlist.textContent = playlist.name;
     ui.best.textContent = store.get("snakeBest", 0);
 
-    setupCanvas();
+    coarse = matchMedia("(pointer: coarse)").matches;
+    gridReady = false;
+    // La rejilla se elige cuando el tablero ya se ve y se puede medir (ver fitBoard).
+    resizer = new ResizeObserver(fitBoard);
+    resizer.observe(ui.board);
     source.forEach(track => preload(track.cover));
 
     unsubscribe = player.onState(state => { playback = state; });
 
     root.addEventListener("click", onClick);
-    root.addEventListener("pointerdown", onSwipe);
-    root.addEventListener("pointerup", onSwipe);
+    ui.board.addEventListener("pointerdown", onSwipe);
+    ui.board.addEventListener("pointermove", onSwipe);
+    ui.board.addEventListener("pointerup", onSwipe);
+    ui.board.addEventListener("pointercancel", onSwipe);
     document.addEventListener("keydown", onKey);
+    document.addEventListener("visibilitychange", onHidden);
+
+    // Botones de dirección: giran al tocar, sin esperar al "click" (que en el móvil llega tarde).
+    root.querySelector(".snake-pad").addEventListener("pointerdown", event => {
+        const button = event.target.closest("[data-steer]");
+        if (!button) return;
+        event.preventDefault();
+        steer(button.dataset.steer);
+        navigator.vibrate?.(5);
+    });
 
     setMode(mode);
     loadQueue();
@@ -77,10 +101,50 @@ async function mount(container, { playlist }) {
 function unmount() {
     stopLoop();
     unsubscribe?.();
+    resizer?.disconnect();
+    releaseWakeLock();
     document.removeEventListener("keydown", onKey);
+    document.removeEventListener("visibilitychange", onHidden);
     root = null;
     game = null;
     playback = null;
+}
+
+// Casillas cuadradas que llenan el hueco disponible, con un mínimo de 14 por lado.
+function chooseGrid() {
+    const { width, height } = ui.board.getBoundingClientRect();
+    const aspect = width && height ? width / height : 4 / 3;
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, Math.round(value)));
+
+    if (aspect < 1) {
+        COLS = 14;
+        ROWS = clamp(14 / aspect, 14, 26);
+    } else {
+        ROWS = 15;
+        COLS = clamp(15 * aspect, 15, 26);
+    }
+}
+
+// El tablero ocupa todo el hueco libre sin deformarse ni provocar scroll.
+function fitBoard() {
+    if (!root) return;
+    const { width, height } = ui.board.getBoundingClientRect();
+    if (!width || !height) return;
+
+    if (!gridReady) {
+        gridReady = true;
+        chooseGrid();
+        setupCanvas();
+        if (!game?.running) {
+            reset();
+            draw(0);
+        }
+    }
+
+    const scale = Math.min(width / (COLS * CELL), height / (ROWS * CELL));
+    if (!scale) return;
+    ui.stage.style.width = `${Math.floor(COLS * CELL * scale)}px`;
+    ui.stage.style.height = `${Math.floor(ROWS * CELL * scale)}px`;
 }
 
 // Canvas nítido en pantallas de alta densidad.
@@ -106,8 +170,8 @@ function loadQueue() {
 
 function reset() {
     game = {
-        snake: [{ x: 10, y: 7, cover: null }],
-        previous: [{ x: 10, y: 7 }],
+        snake: [{ x: Math.floor(COLS / 2) - 2, y: Math.floor(ROWS / 2), cover: null }],
+        previous: [{ x: Math.floor(COLS / 2) - 2, y: Math.floor(ROWS / 2) }],
         food: null,
         track: null,
         direction: DIRECTIONS.right,
@@ -133,11 +197,52 @@ function begin() {
     game.running = true;
     game.last = performance.now();
     frame = requestAnimationFrame(loop);
+    keepAwake();
+}
+
+// Pausa (cambio de pestaña, ir a la app de Spotify, tecla P o Espacio) y vuelta.
+function pauseGame() {
+    if (!game?.running) return;
+    stopLoop();
+    releaseWakeLock();
+    player.pause();
+    overlay("paused");
+}
+
+function resumeGame() {
+    if (!game || game.running || !game.snake.length || ui.paused.classList.contains("hidden")) return;
+    overlay(null);
+    game.running = true;
+    game.last = performance.now();
+    game.accumulator = 0;
+    frame = requestAnimationFrame(loop);
+    keepAwake();
+    player.resume().catch(() => {});
+}
+
+function onHidden() {
+    if (document.hidden) pauseGame();
+}
+
+// En el móvil, que la pantalla no se apague a mitad de partida.
+async function keepAwake() {
+    try {
+        wakeLock = await navigator.wakeLock?.request("screen");
+    } catch {
+        wakeLock = null;
+    }
+}
+
+function releaseWakeLock() {
+    wakeLock?.release().catch(() => {});
+    wakeLock = null;
 }
 
 function end() {
     stopLoop();
+    releaseWakeLock();
     player.pause();
+    navigator.vibrate?.([30, 40, 60]);
 
     const best = store.get("snakeBest", 0);
     const record = game.score > best;
@@ -200,8 +305,9 @@ function songProgress() {
 }
 
 function currentTick() {
-    if (mode !== "synth") return TICK.classic;
-    return TICK.synthSlow - (TICK.synthSlow - TICK.synthFast) * songProgress();
+    const extra = coarse ? TOUCH_SLOWER : 0;
+    if (mode !== "synth") return TICK.classic + extra;
+    return TICK.synthSlow - (TICK.synthSlow - TICK.synthFast) * songProgress() + extra;
 }
 
 
@@ -242,6 +348,7 @@ function step() {
         snake.push({ x: tail.x, y: tail.y, cover: game.food.track.cover });
         game.score++;
         game.flash = { x: game.food.x, y: game.food.y, at: performance.now() };
+        navigator.vibrate?.(12);
         ui.score.textContent = game.score;
         pulse(ui.score);
     }
@@ -486,9 +593,10 @@ function drawHead(alpha, color) {
 function overlay(which) {
     ui.ready.classList.toggle("hidden", which !== "ready");
     ui.over.classList.toggle("hidden", which !== "over");
+    ui.paused.classList.toggle("hidden", which !== "paused");
 
-    const focus = which === "ready" ? ui.ready : which === "over" ? ui.over : null;
-    focus?.querySelector("[data-action=start]").focus({ preventScroll: true });
+    const panel = { ready: ui.ready, over: ui.over, paused: ui.paused }[which];
+    panel?.querySelector("[data-action]")?.focus({ preventScroll: true });
 }
 
 function onClick(event) {
@@ -496,23 +604,46 @@ function onClick(event) {
     if (!target) return;
 
     if (target.dataset.mode) setMode(target.dataset.mode);
-    else if (target.dataset.steer) steer(target.dataset.steer);
+    else if (target.dataset.steer) {
+        if (event.detail === 0) steer(target.dataset.steer); // con teclado; con el dedo ya giró al tocar
+    }
     else if (target.dataset.action === "start") begin();
     else if (target.dataset.action === "menu") overlay("ready");
+    else if (target.dataset.action === "resume") resumeGame();
+    else if (target.dataset.action === "pause") pauseGame();
 }
 
 function onKey(event) {
+    if ((event.key === "p" || event.key === "P" || event.key === " " || event.key === "Escape") && game) {
+        if (game.running) {
+            event.preventDefault();
+            pauseGame();
+        } else if (!ui.paused.classList.contains("hidden") && event.key !== "Escape") {
+            event.preventDefault();
+            resumeGame();
+        }
+        return;
+    }
+
     const name = KEYS[event.key];
     if (!game?.running || !name) return;
     event.preventDefault();
     steer(name);
 }
 
+// Se gira en cuanto el dedo recorre unos píxeles, sin levantarlo: se pueden encadenar giros.
 function onSwipe(event) {
-    if (event.pointerType !== "touch" || !event.target.closest("canvas")) return;
+    if (event.pointerType === "mouse") return;
+    if (event.target.closest("button")) return;
 
     if (event.type === "pointerdown") {
         swipe = { x: event.clientX, y: event.clientY };
+        ui.board.setPointerCapture?.(event.pointerId);
+        return;
+    }
+
+    if (event.type !== "pointermove") {
+        swipe = null;
         return;
     }
 
@@ -520,10 +651,10 @@ function onSwipe(event) {
 
     const dx = event.clientX - swipe.x;
     const dy = event.clientY - swipe.y;
-    swipe = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return;
 
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
     steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+    swipe = { x: event.clientX, y: event.clientY };
 }
 
 

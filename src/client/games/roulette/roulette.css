@@ -133,9 +133,16 @@
 
 
 @media (max-width: 760px) {
+    .rl-view { gap: var(--space-5); }
+    .rl-entry { gap: var(--space-4); }
     .rl-entry-options { grid-template-columns: 1fr; }
     .rl-option + .rl-option { border-left: 0; border-top: 1px solid var(--line); }
-    .rl-option { padding: var(--space-5); }
+    .rl-option { padding: var(--space-4); gap: var(--space-2); }
+    .rl-option h2 { font-size: 1.9rem; }
+    .rl-option p.muted { display: none; }
+    .rl-option > .btn, .rl-join .btn { min-height: 52px; }
+    .rl-code-input { min-height: 52px; }
+    .rl-lobby .lead, .rl-view > .lead { font-size: 1.05rem; }
     .rl-room-grid { grid-template-columns: 1fr; gap: var(--space-6); }
     .rl-count { justify-items: start; }
     .rl-covers { grid-template-columns: repeat(3, 1fr); }

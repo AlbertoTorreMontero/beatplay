@@ -157,9 +157,23 @@
 .hipster-over-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-3); }
 
 @media (max-width: 600px) {
-    .hipster-player { padding: var(--space-4); gap: var(--space-4); }
-    .mystery { width: 64px; font-size: 2.75rem; }
+    .hipster-board { gap: var(--space-3); }
+    .hipster-player { padding: var(--space-3); gap: var(--space-3); }
+    .mystery { width: 56px; font-size: 2.5rem; }
+    .hipster-question { font-size: 1.1rem; }
     .hipster-time { display: none; }
-    .year-card { width: 138px; }
-    .year-card-year { font-size: 2.4rem; }
+    .hipster-help { display: none; }
+    .timeline { padding-top: var(--space-2); padding-bottom: var(--space-3); }
+    .year-card { width: 116px; padding: var(--space-2); }
+    .year-card-year { font-size: 2.1rem; }
+    .year-card-name { font-size: var(--text-xs); }
+}
+
+/* Pantallas bajas (portátiles): todo cabe sin scroll. */
+@media (max-height: 800px) and (min-width: 601px) {
+    .hipster-board { gap: var(--space-4); }
+    .hipster-player { padding: var(--space-4); }
+    .mystery { width: 72px; font-size: 3rem; }
+    .year-card { width: 140px; }
+    .year-card-year { font-size: 2.5rem; }
 }

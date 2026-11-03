@@ -51,6 +51,12 @@ function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
         });
     }));
 
+    // Spotify Connect: dispositivos donde puede sonar (la app de Spotify del móvil, por ejemplo).
+    router.get("/player/devices", route(async (req, res) => {
+        if (!provider.listDevices) throw new HttpError("Este servicio no admite elegir dispositivo.", 404);
+        res.json(await provider.listDevices(req.token));
+    }));
+
     router.put("/player/:action", route(async (req, res) => {
         const control = provider.controls?.[req.params.action];
 
