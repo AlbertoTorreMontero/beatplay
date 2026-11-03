@@ -8,5 +8,7 @@ module.exports = {
     // Qué servicio de música usa la app. Cada uno vive en src/server/providers/<nombre>.js.
     provider: process.env.MUSIC_PROVIDER || "spotify",
     hipsterPlaylistId: process.env.HIPSTER_PLAYLIST_ID || null,
-    clientDir: path.join(__dirname, "..", "client")
+    clientDir: path.join(__dirname, "..", "client"),
+    // Datos que deben sobrevivir a un reinicio (qué Client ID usa cada cuenta).
+    dataDir: process.env.DATA_DIR || path.join(__dirname, "..", "..", "data")
 };

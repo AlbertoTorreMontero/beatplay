@@ -1,33 +1,57 @@
 // Login con el proveedor de música (OAuth) y cierre de sesión.
 const express = require("express");
+const { route, rateLimit } = require("../utils");
 
-function authRoutes({ provider, sessions }) {
+function authRoutes({ provider, sessions, accounts }) {
 
     const router = express.Router();
     const callbackPath = new URL(provider.redirectUri).pathname;
 
-    router.get("/login", (req, res) => {
-        res.redirect(provider.authorizeUrl(sessions.issueState(res)));
+    // Público: la portada y la pantalla de login lo necesitan para la guía de configuración.
+    router.get("/auth/config", (req, res) => {
+        res.json({ id: provider.id, name: provider.name, redirectUri: provider.redirectUri, ...provider.setup });
     });
 
-    router.get(callbackPath, async (req, res) => {
-        const { code, error, state } = req.query;
-        const validState = sessions.checkState(req, res, state);
+    // Entrar desde otro dispositivo: con el usuario o el email se recupera el Client ID guardado.
+    router.get("/auth/client-id", rateLimit({ max: 20, windowMs: 60000 }), (req, res) => {
+        const clientId = accounts.find(req.query.account);
+        if (!clientId) return res.status(404).json({ error: "No encontramos esa cuenta. ¿Has entrado antes en BeatPlay con ella?" });
+        res.json({ clientId });
+    });
 
-        if (error) return res.redirect("/?auth=denied");
-        if (!code || !validState) return res.redirect("/?auth=error");
-
+    // /login?clientId=… entra con la app propia del usuario; sin él, con la compartida (si existe).
+    router.get("/login", (req, res) => {
+        let login;
         try {
-            sessions.start(req, res, await provider.exchangeCode(code));
-            res.redirect("/app");
+            login = provider.startLogin({ clientId: req.query.clientId });
+        } catch {
+            return res.redirect("/app?auth=setup");
+        }
+        res.redirect(provider.authorizeUrl(sessions.issueState(res, login), login));
+    });
+
+    router.get(callbackPath, route(async (req, res) => {
+        const { code, error, state } = req.query;
+        const login = sessions.checkState(req, res, state);
+
+        if (error) return res.redirect("/app?auth=denied");
+        if (!code || !login) return res.redirect("/app?auth=error");
+
+        let tokens, profile;
+        try {
+            tokens = await provider.exchangeCode(code, login);
+            profile = await provider.getProfile(tokens.accessToken);
         } catch (loginError) {
             console.error("No se pudo completar el login:", loginError.message);
-            res.redirect("/?auth=error");
+            // 403: la cuenta no está autorizada en la app compartida.
+            return res.redirect(loginError.status === 403 ? "/app?auth=notallowed" : "/app?auth=error");
         }
-    });
 
-    // Público: la portada y la pantalla de login muestran el nombre del servicio.
-    router.get("/auth/provider", (req, res) => res.json({ id: provider.id, name: provider.name }));
+        if (tokens.ownApp) accounts.remember(profile, tokens.clientId);
+
+        sessions.start(req, res, tokens, profile);
+        res.redirect("/app");
+    }));
 
     router.post("/auth/logout", (req, res) => {
         sessions.destroy(req, res);

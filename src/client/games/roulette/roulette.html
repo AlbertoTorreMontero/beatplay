@@ -63,6 +63,13 @@
                 <h2 class="rl-subtitle">Tu playlist</h2>
                 <p data-ref="playlistStatus" class="rl-status">Elige una. Nadie verá cuál es.</p>
                 <div data-ref="playlists" class="playlists rl-playlists"></div>
+                <form data-ref="linkForm" class="rl-link">
+                    <label for="rlLink" data-ref="linkLabel">O pega el enlace de una playlist pública de Spotify</label>
+                    <div class="rl-join">
+                        <input id="rlLink" data-ref="link" class="input" inputmode="url" autocomplete="off" placeholder="https://open.spotify.com/playlist/…">
+                        <button class="btn btn-outline" type="submit">Usar</button>
+                    </div>
+                </form>
             </div>
         </div>
 

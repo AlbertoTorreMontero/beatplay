@@ -1,8 +1,8 @@
 // API JSON para el cliente. Todo cuelga de /api y exige sesión.
 const express = require("express");
-const { HttpError, route } = require("../utils");
+const { HttpError, route, shuffle } = require("../utils");
 
-const SAMPLE_SIZE = 20;
+const SAMPLE_SIZE = 50; // una página entera: misma llamada, más variedad
 const HIPSTER_SIZE = 60;
 const hasYear = track => Number.isInteger(track.year) && track.year > 0;
 
@@ -13,14 +13,16 @@ function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
     router.use(sessions.requireSession);
 
     router.get("/me", route(async (req, res) => {
+        const { id, name } = req.session.profile;
         res.json({
-            ...(await provider.getProfile(req.token)),
+            id,
+            name,
             provider: { id: provider.id, name: provider.name, playback: provider.playback }
         });
     }));
 
     router.get("/playlists", route(async (req, res) => {
-        res.json((await provider.listPlaylists(req.token)).filter(playlist => playlist.tracks > 0));
+        res.json((await library.playlists(req, { refresh: Boolean(req.query.refresh) })).filter(playlist => playlist.tracks > 0));
     }));
 
     // ?all=1 → playlist entera (Bingo). ?dated=1 → solo canciones con año (Hipster). Si no, muestra corta.
@@ -37,7 +39,7 @@ function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
         if (!hipsterPlaylistId) {
             throw new HttpError("La selección oficial de Hipster no está configurada (falta HIPSTER_PLAYLIST_ID).", 503);
         }
-        res.json(await library.sampleTracks(req, hipsterPlaylistId, HIPSTER_SIZE, hasYear));
+        res.json(shuffle([...await library.sharedTracks(req, hipsterPlaylistId, hasYear)]).slice(0, HIPSTER_SIZE));
     }));
 
     // ---- Reproductor del cliente: token y controles, si el proveedor los necesita.
@@ -53,7 +55,7 @@ function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
         const control = provider.controls?.[req.params.action];
 
         if (!control) throw new HttpError("Este servicio no admite esa acción.", 404);
-        if (req.params.action !== "pause" && !req.body?.deviceId) throw new HttpError("Falta el dispositivo.", 400);
+        if (!req.body?.deviceId) throw new HttpError("Falta el dispositivo.", 400);
 
         await control(req.token, req.body || {});
         res.sendStatus(204);

@@ -14,6 +14,7 @@ let ui = {};
 let root = null;
 let options = null;
 let deck = [];
+let deckIndex = 0;
 let timeline = [];
 let current = null;
 let score = 0;
@@ -64,8 +65,11 @@ function start(tracks) {
     gameId++;
     clearTimeout(timer);
 
+    // La lista entera se carga en el reproductor: pasar de canción no gasta llamadas a la API.
     deck = shuffle([...tracks]);
-    timeline = [deck.pop()];
+    deckIndex = 0;
+    player.load(deck);
+    timeline = [deck[0]];
     score = 0;
 
     ui.score.textContent = "0";
@@ -86,16 +90,16 @@ function start(tracks) {
 
 async function next(id) {
     if (id !== gameId) return;
-    if (!deck.length) return finish(true);
+    if (++deckIndex >= deck.length) return finish(true);
 
-    current = deck.pop();
+    current = deck[deckIndex];
     locked = false;
     playback = null;
     renderProgress();
     setStatus("Cargando canción…");
 
     try {
-        await player.play(current);
+        await player.playAt(deckIndex);
         if (id === gameId) setStatus("Escucha y elige un hueco");
     } catch (error) {
         console.warn("Hipster:", error);
@@ -235,8 +239,7 @@ function onClick(event) {
     } else if (event.target.closest("[data-ref=play]")) {
         player.toggle().catch(error => toast(error.message, { error: true }));
     } else if (event.target.closest("[data-action=restart]")) {
-        const all = [...timeline, ...deck, current].filter(Boolean);
-        start([...new Set(all)]);
+        start(deck);
     }
 }
 

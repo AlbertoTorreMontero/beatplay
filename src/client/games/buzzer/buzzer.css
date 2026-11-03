@@ -1,0 +1,30 @@
+/* =========================================================
+   PULSADOR (reutiliza la estructura de Music Roulette: .rl-*)
+========================================================= */
+
+.bz-source { color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+
+.bz-answer { display: grid; gap: var(--space-4); max-width: 640px; }
+.bz-answer .btn-ghost { justify-self: start; }
+
+.bz-feedback { min-height: 1.5em; color: var(--bad); }
+.shake { animation: shake 360ms var(--ease); }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+.bz-done {
+    justify-self: start;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius);
+    background: var(--bone);
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.bz-progress { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; }
+.bz-progress li { padding: var(--space-1) var(--space-3); border: 1px solid var(--line); border-radius: 999px; color: var(--grey); font-size: var(--text-sm); }
+.bz-progress li.solved { border-color: var(--good); color: var(--good); }
+.bz-progress li.passed { opacity: 0.5; }
+
+.bz-cover { width: min(220px, 60vw); aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; animation: flip 520ms var(--ease); }

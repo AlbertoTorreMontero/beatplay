@@ -3,14 +3,17 @@ const path = require("path");
 const express = require("express");
 const { createSessions } = require("./session");
 const { createLibrary } = require("./library");
+const { createAccounts } = require("./accounts");
+const { HttpError, route, rateLimit } = require("./utils");
 const { authRoutes } = require("./routes/auth");
 const { apiRoutes } = require("./routes/api");
 
-function createApp({ provider, clientDir, hipsterPlaylistId }) {
+function createApp({ provider, clientDir, dataDir, hipsterPlaylistId }) {
 
     const app = express();
     const sessions = createSessions(provider);
-    const library = createLibrary(provider);
+    const library = createLibrary(provider, { dataDir });
+    const accounts = createAccounts(dataDir);
     const canonical = new URL(provider.redirectUri);
 
     app.disable("x-powered-by");
@@ -32,7 +35,21 @@ function createApp({ provider, clientDir, hipsterPlaylistId }) {
     app.get("/", (req, res) => res.sendFile(path.join(clientDir, "landing", "index.html")));
     app.get("/app", (req, res) => res.sendFile(path.join(clientDir, "app", "index.html")));
 
-    app.use(authRoutes({ provider, sessions }));
+    app.use(authRoutes({ provider, sessions, accounts }));
+
+    // Invitados de Music Roulette: eligen playlist pegando su enlace público, sin iniciar sesión.
+    app.post("/api/public/playlist", rateLimit({ max: 10, windowMs: 60000 }), route(async (req, res) => {
+        if (!provider.readPublicPlaylist) throw new HttpError("Este servicio no permite leer playlists públicas.", 404);
+        res.json(await provider.readPublicPlaylist(req.body?.url));
+    }));
+
+    // Enlace de invitación: a qué juego pertenece una sala (Roulette o Pulsador).
+    app.get("/api/public/room/:code", (req, res) => {
+        const game = req.app.locals.rooms?.gameOf(req.params.code);
+        if (!game) return res.status(404).json({ error: "Esa sala ya no existe." });
+        res.json({ game });
+    });
+
     app.use("/api", apiRoutes({ provider, sessions, library, hipsterPlaylistId }));
 
     app.use((req, res) => res.redirect("/"));

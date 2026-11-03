@@ -31,8 +31,10 @@ async function mount(container, { playlist }) {
         throw new Error(`El bingo necesita al menos ${PER_CARD} canciones. Esta playlist tiene ${catalog.length}.`);
     }
 
+    // El orden de "Cantar" se decide ya y se carga en el reproductor: cada canción nueva sale sin llamadas.
     queue = shuffle([...catalog]);
     called = [];
+    player.load(queue);
 
     ui.playlist.textContent = `${playlist.name} · ${catalog.length} canciones`;
     ui.name.value = playlist.name;
@@ -97,17 +99,18 @@ function bingoCard(number, title) {
 // =====================================================
 
 async function callNext() {
-    if (!queue.length) {
+    if (called.length >= queue.length) {
         toast("Ya han sonado todas las canciones de la playlist.");
         return;
     }
 
-    const track = queue.pop();
+    const index = called.length;
+    const track = queue[index];
     called.unshift(track);
     renderCaller();
 
     try {
-        await player.play(track);
+        await player.playAt(index);
     } catch (error) {
         toast(error.message, { error: true });
     }

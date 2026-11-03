@@ -11,14 +11,16 @@
  *   coverHosts                     hosts de los que se aceptan portadas en Music Roulette
  *   playback                       reproductor del cliente: "spotify-sdk" | "preview" | null
  *
- *   authorizeUrl(state)            URL a la que mandar al usuario para iniciar sesión
- *   exchangeCode(code)             -> tokens  { accessToken, refreshToken, expiresAt }
+ *   setup                          datos para la pantalla de login (p. ej. si cada usuario usa su propia app)
+ *   startLogin(query)              -> login   datos que se guardan hasta la vuelta del login
+ *   authorizeUrl(state, login)     URL a la que mandar al usuario para iniciar sesión
+ *   exchangeCode(code, login)      -> tokens  { accessToken, refreshToken, expiresAt, clientId?, ownApp? }
  *   refresh(tokens)                -> tokens  renovados
- *   getProfile(token)              -> { id, name }
+ *   getProfile(token)              -> { id, name, email }
  *   listPlaylists(token)           -> [{ id, name, owner, image, tracks }]
- *   getPlaylistInfo(token, id)     -> { name, total }
- *   getTrackPage(token, id, offset)-> [track]
- *   controls?: { transfer, play, pause }   si el reproductor del cliente necesita al servidor
+ *   getTrackPage(token, id, offset)-> { total, tracks }   el total viene en la misma llamada
+ *   readPublicPlaylist?(url)       -> { name, tracks }  playlist pública sin iniciar sesión (invitados)
+ *   controls?: { play, transfer }  si el reproductor del cliente necesita al servidor
  *
  * Una canción ("track") siempre tiene esta forma, venga del servicio que venga:
  *   { id, ref, name, artist, album, year, cover, preview }

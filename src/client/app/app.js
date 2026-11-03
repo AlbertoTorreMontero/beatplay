@@ -3,19 +3,24 @@ import { $, $$, toast, showScreen } from "../lib/ui.js";
 import { getMe, logout, SESSION_EXPIRED } from "../lib/api.js";
 import { setupPlayer, player } from "../lib/player/index.js";
 import { playlistPicker } from "../lib/playlists.js";
+import { initLogin } from "./login.js";
 
 import snake from "../games/snake/snake.js";
 import bingo from "../games/bingo/bingo.js";
 import hipster from "../games/hipster/hipster.js";
 import roulette from "../games/roulette/roulette.js";
+import intro from "../games/intro/intro.js";
+import buzzer from "../games/buzzer/buzzer.js";
 
-const GAMES = { snake, bingo, hipster, roulette };
+const GAMES = { snake, intro, hipster, bingo, buzzer, roulette };
 
 const state = {
     game: "snake",
     playlist: null,
     hipsterSource: "user",
     busy: false,
+    loggedIn: false,
+    guest: false, // invitado sin cuenta: solo Music Roulette
     active: null, // juego montado ahora mismo
     invite: null  // código de sala de un enlace de invitación
 };
@@ -144,6 +149,13 @@ function stopGame() {
 $("#gameScreen").addEventListener("click", event => {
     if (!event.target.closest("[data-exit]")) return;
     stopGame();
+
+    if (state.guest) {
+        state.guest = false;
+        showScreen("loginScreen");
+        return;
+    }
+
     showScreen("menuScreen");
     $(`.game-card[data-game="${state.game}"]`)?.focus();
 });
@@ -166,6 +178,14 @@ function storeInvite() {
     history.replaceState(null, "", location.pathname);
 }
 
+function peekInvite() {
+    try {
+        return sessionStorage.getItem("beatplayInvite") || state.invite;
+    } catch {
+        return state.invite;
+    }
+}
+
 function takeInvite() {
     let code = state.invite;
     try {
@@ -176,20 +196,51 @@ function takeInvite() {
     return code;
 }
 
+// Las salas son de Music Roulette o de Pulsador: se pregunta al servidor de cuál es.
+async function gameOfRoom(code) {
+    const response = await fetch(`/api/public/room/${encodeURIComponent(code)}`).catch(() => null);
+    const data = await response?.json().catch(() => null);
+    if (!response?.ok) throw new Error(data?.error || "No se encontró esa sala.");
+    return data.game;
+}
+
 async function openInvite() {
     const code = takeInvite();
     if (!code) return;
 
-    if (state.active) stopGame();
-    state.game = "roulette";
-    renderMenu();
-    await startGame({ code });
+    try {
+        const game = await gameOfRoom(code);
+        if (state.active) stopGame();
+        state.game = game;
+        renderMenu();
+        await startGame({ code });
+    } catch (error) {
+        toast(error.message, { error: true });
+    }
 }
 
 window.addEventListener("hashchange", () => {
     storeInvite();
-    if (!$("#menuScreen").classList.contains("hidden") || state.game === "roulette") openInvite();
+    if (state.loggedIn) openInvite();
+    else if (!$("#loginScreen").classList.contains("hidden")) startGuest(takeInvite());
 });
+
+// Invitado sin cuenta: entra a la sala del código (Music Roulette o Pulsador).
+async function startGuest(code) {
+    code = String(code || "").trim().toUpperCase();
+    if (!code) return;
+
+    try {
+        const game = await gameOfRoom(code);
+        if (state.active) stopGame();
+        state.guest = true;
+        state.game = game;
+        await startGame({ guest: true, code });
+        if (!state.active) state.guest = false; // no se pudo abrir: sigue en el login
+    } catch (error) {
+        toast(error.message, { error: true });
+    }
+}
 
 
 // =====================================================
@@ -207,7 +258,7 @@ function showProviderName(name) {
 }
 
 window.addEventListener(SESSION_EXPIRED, () => {
-    if ($("#loginScreen").classList.contains("hidden")) {
+    if (state.loggedIn && !state.guest && $("#loginScreen").classList.contains("hidden")) {
         stopGame();
         showScreen("loginScreen");
         toast("Tu sesión ha caducado. Vuelve a entrar.");
@@ -217,16 +268,19 @@ window.addEventListener(SESSION_EXPIRED, () => {
 async function boot() {
     storeInvite();
 
-    fetch("/auth/provider").then(response => response.json()).then(({ name }) => showProviderName(name)).catch(() => {});
+    const config = await fetch("/auth/config").then(response => response.json()).catch(() => ({ name: "Spotify", redirectUri: "" }));
+    showProviderName(config.name);
 
     let me;
     try {
         me = await getMe();
     } catch {
+        initLogin({ config, invite: peekInvite(), onGuest: code => startGuest(code || takeInvite()) });
         showScreen("loginScreen");
         return;
     }
 
+    state.loggedIn = true;
     $("#userName").textContent = me.name;
     initMenu();
     showScreen("menuScreen");
@@ -243,4 +297,6 @@ async function boot() {
     await openInvite();
 }
 
-boot();
+// Se arranca con la página ya cargada (estilos incluidos): evita medir el diseño antes de tiempo.
+if (document.readyState === "complete") boot();
+else window.addEventListener("load", boot, { once: true });

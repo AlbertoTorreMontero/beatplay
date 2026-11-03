@@ -4,6 +4,7 @@ export function createPlayer({ emit }) {
 
     const audio = new Audio();
     let ref = null;
+    let list = [];
 
     const report = () => emit({
         ref,
@@ -19,15 +20,20 @@ export function createPlayer({ emit }) {
     return {
         init: async () => {},
 
-        async play(track, positionMs = 0) {
+        load(tracks) {
+            list = tracks;
+        },
+
+        async playAt(index) {
+            const track = list[index];
             if (!track?.preview) throw new Error("Esta canción no tiene audio disponible.");
             ref = track.ref || track.id;
             audio.src = track.preview;
-            audio.currentTime = positionMs / 1000;
             await audio.play();
         },
 
         pause: async () => audio.pause(),
+        resume: () => audio.play(),
         toggle: async () => (audio.paused ? audio.play() : audio.pause()),
         seek: async ms => { audio.currentTime = ms / 1000; }
     };

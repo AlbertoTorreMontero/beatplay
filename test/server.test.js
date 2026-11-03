@@ -38,12 +38,14 @@ async function startServer(extraEnv = {}) {
 
     const child = spawn("node", ["src/server/index.js"], { cwd: ROOT, env });
     const spotifyCalls = [];
+    const spotifyBodies = [];
     let output = "";
 
     child.stderr.on("data", chunk => {
         output += chunk;
         for (const line of String(chunk).split("\n")) {
             if (line.startsWith("SPOTIFY ")) spotifyCalls.push(line.slice(8));
+            if (line.startsWith("SPOTIFY_BODY ")) spotifyBodies.push(JSON.parse(line.slice(13)));
         }
     });
     child.stdout.on("data", chunk => { output += chunk; });
@@ -55,6 +57,7 @@ async function startServer(extraEnv = {}) {
         port,
         base: `http://127.0.0.1:${port}`,
         spotifyCalls,
+        spotifyBodies,
         isAlive: () => fetch(`http://127.0.0.1:${port}/healthz`).then(res => res.ok, () => false),
         stop: () => child.kill()
     };
@@ -81,8 +84,8 @@ function browser(base) {
     };
 
     request.jar = jar;
-    request.login = async user => {
-        const res = await request("/login");
+    request.login = async (user, clientId) => {
+        const res = await request(clientId ? `/login?clientId=${clientId}` : "/login");
         const state = new URL(res.headers.get("location")).searchParams.get("state");
         return request(`/callback?code=code-${user}&state=${state}`);
     };
@@ -180,14 +183,14 @@ describe("sesiones y OAuth", () => {
     it("rechaza un callback con state falso o ausente", async () => {
         const attacker = browser(server.base);
         const forged = await attacker("/callback?code=code-mallory&state=falso");
-        assert.equal(forged.headers.get("location"), "/?auth=error");
+        assert.equal(forged.headers.get("location"), "/app?auth=error");
         assert.equal(attacker.jar.beatplay_sid, undefined);
-        assert.equal((await browser(server.base)("/callback?code=x&state=y")).headers.get("location"), "/?auth=error");
+        assert.equal((await browser(server.base)("/callback?code=x&state=y")).headers.get("location"), "/app?auth=error");
     });
 
     it("si el usuario cancela en Spotify vuelve a la portada con aviso", async () => {
         const res = await browser(server.base)("/callback?error=access_denied");
-        assert.equal(res.headers.get("location"), "/?auth=denied");
+        assert.equal(res.headers.get("location"), "/app?auth=denied");
     });
 
     it("redirige al host canónico (localhost → 127.0.0.1) y deja /healthz accesible", async () => {
@@ -210,6 +213,70 @@ describe("sesiones y OAuth", () => {
         const app = await fetch(`${server.base}/app`);
         assert.equal(app.status, 200);
         assert.match(await app.text(), /BeatPlay/);
+    });
+});
+
+describe("app propia de cada usuario (Client ID + PKCE)", () => {
+
+    const OWN_ID = "0123456789abcdef0123456789abcdef";
+    let server;
+
+    before(async () => { server = await startServer({ DATA_DIR: require("node:fs").mkdtempSync(require("node:path").join(require("node:os").tmpdir(), "bp-")) }); });
+    after(() => server.stop());
+
+    it("manda a Spotify con el Client ID del usuario y un code_challenge", async () => {
+        const res = await browser(server.base)(`/login?clientId=${OWN_ID}`);
+        const url = new URL(res.headers.get("location"));
+        assert.equal(url.searchParams.get("client_id"), OWN_ID);
+        assert.equal(url.searchParams.get("code_challenge_method"), "S256");
+        assert.ok(url.searchParams.get("code_challenge"));
+    });
+
+    it("rechaza un Client ID con mal formato", async () => {
+        const res = await browser(server.base)("/login?clientId=hola");
+        assert.equal(res.headers.get("location"), "/app?auth=setup");
+    });
+
+    it("entra con PKCE, usa su app al renovar y recuerda su Client ID para otro dispositivo", async () => {
+        const gina = browser(server.base);
+        assert.equal((await gina.login("gina", OWN_ID)).headers.get("location"), "/app");
+        assert.match((await (await gina("/api/player/token")).json()).accessToken, /-own$/);
+        assert.equal((await gina("/api/playlists")).status, 200);
+
+        for (const account of ["gina", "GINA@mail.com"]) {
+            const found = await fetch(`${server.base}/auth/client-id?account=${encodeURIComponent(account)}`);
+            assert.equal((await found.json()).clientId, OWN_ID);
+        }
+        assert.equal((await fetch(`${server.base}/auth/client-id?account=nadie`)).status, 404);
+    });
+
+    it("una cuenta no autorizada en la app compartida va a la guía", async () => {
+        const res = await browser(server.base).login("fuera1");
+        assert.equal(res.headers.get("location"), "/app?auth=notallowed");
+    });
+
+    it("sin app compartida configurada, /login pide el Client ID propio", async () => {
+        const bare = await startServer({ SPOTIFY_CLIENT_ID: "", SPOTIFY_CLIENT_SECRET: "" });
+        try {
+            assert.equal((await browser(bare.base)("/login")).headers.get("location"), "/app?auth=setup");
+            const config = await (await fetch(`${bare.base}/auth/config`)).json();
+            assert.equal(config.sharedApp, false);
+            assert.equal(config.redirectUri, `${bare.base}/callback`);
+        } finally {
+            bare.stop();
+        }
+    });
+
+    it("un invitado lee una playlist pública sin iniciar sesión", async () => {
+        const post = body => fetch(`${server.base}/api/public/playlist`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+        const ok = await (await post({ url: "https://open.spotify.com/intl-es/playlist/fiesta?si=1" })).json();
+        assert.equal(ok.name, "Pública fiesta");
+        assert.equal(ok.tracks.length, 20);
+        assert.ok(ok.tracks.every(track => track.cover.startsWith("https://image-cdn-ak.spotifycdn.com/")));
+
+        assert.equal((await post({ url: "https://evil.example/playlist/x" })).status, 400);
+        assert.equal((await post({ url: "https://open.spotify.com/playlist/privada" })).status, 404);
     });
 });
 
@@ -243,6 +310,38 @@ describe("canciones y Hipster", () => {
         await user.login("dana");
     });
     after(() => server.stop());
+
+    it("pocas llamadas a Spotify: /api/me sale de la sesión y una muestra corta es una sola página", async () => {
+        const before = server.spotifyCalls.length;
+        assert.equal((await user("/api/me")).status, 200);
+        assert.equal(server.spotifyCalls.length, before, "/api/me no debe llamar a Spotify");
+
+        await user("/api/playlists");
+        const afterList = server.spotifyCalls.length;
+        const sample = await (await user("/api/playlists/pl-dana/tracks")).json();
+        assert.equal(sample.length, 50);
+        assert.equal(server.spotifyCalls.length - afterList, 1, "con el total ya conocido, 50 canciones = 1 página");
+
+        await user("/api/playlists");
+        await user("/api/me");
+        assert.equal(server.spotifyCalls.length - afterList, 1, "lo repetido sale de caché");
+    });
+
+    it("reproducir una cola entera es una sola llamada", async () => {
+        const refs = Array.from({ length: 30 }, (_, i) => `spotify:track:x${i}`);
+        const before = server.spotifyCalls.length;
+        const res = await user("/api/player/play", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "d", refs, index: 3 }) });
+        assert.equal(res.status, 204);
+        assert.equal(server.spotifyCalls.length - before, 1);
+        const body = server.spotifyBodies.at(-1);
+        assert.equal(body.uris.length, 30);
+        assert.equal(body.offset.position, 3);
+
+        // Activar el dispositivo al conectar: una llamada.
+        const transfer = await user("/api/player/transfer", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "d" }) });
+        assert.equal(transfer.status, 204);
+        assert.match(server.spotifyCalls.at(-1), /PUT \/me\/player$/);
+    });
 
     it("Bingo recibe la playlist completa sin duplicados", async () => {
         const tracks = await (await user("/api/playlists/pl-dana/tracks?all=1")).json();
@@ -330,7 +429,7 @@ describe("Music Roulette", () => {
         const a = await openSocket(server.base);
         const b = await openSocket(server.base);
 
-        a.sendJson({ type: "create_room", name: "Jugador" });
+        a.sendJson({ type: "create_room", game: "roulette", name: "Jugador" });
         const { code } = await a.waitFor("joined");
         assert.match(code, /^[A-HJ-NP-Z2-9]{5}$/, "código sin caracteres ambiguos");
 
@@ -351,6 +450,10 @@ describe("Music Roulette", () => {
         b.sendJson({ type: "set_playlist", playlist: { id: "x", name: "Secreta" }, tracks: tracksFor("evil", "tracker.example.com") });
         assert.match((await b.waitFor("error_message")).message, /0 canciones/);
 
+        // Un host que solo termina igual no cuela.
+        b.sendJson({ type: "set_playlist", playlist: { id: "x", name: "Secreta" }, tracks: tracksFor("evil", "evilscdn.co") });
+        assert.match((await b.waitFor("error_message")).message, /0 canciones/);
+
         a.sendJson({ type: "set_playlist", playlist: { id: "a", name: "Lista de A" }, tracks: tracksFor("a") });
         await sleep(150);
         const last = a.messages.filter(m => m.type === "room_state").at(-1);
@@ -365,7 +468,7 @@ describe("Music Roulette", () => {
         const a = await openSocket(server.base);
         const b = await openSocket(server.base);
 
-        a.sendJson({ type: "create_room", name: "A" });
+        a.sendJson({ type: "create_room", game: "roulette", name: "A" });
         const { code, playerId: aId } = await a.waitFor("joined");
         b.sendJson({ type: "join_room", code, name: "B" });
         const { playerId: bId } = await b.waitFor("joined");
@@ -417,7 +520,7 @@ describe("Music Roulette", () => {
         const a = await openSocket(server.base);
         let b = await openSocket(server.base);
 
-        a.sendJson({ type: "create_room", name: "A" });
+        a.sendJson({ type: "create_room", game: "roulette", name: "A" });
         const { code } = await a.waitFor("joined");
         b.sendJson({ type: "join_room", code, name: "B" });
         const { playerId, token } = await b.waitFor("joined");
@@ -467,5 +570,68 @@ describe("Music Roulette", () => {
 
         a.close();
         b.close();
+    });
+});
+
+describe("Pulsador", () => {
+
+    let server;
+
+    before(async () => { server = await startServer(); });
+    after(() => server.stop());
+
+    const songs = Array.from({ length: 6 }, (_, i) => ({ id: `s${i}`, name: `Canción ${i}`, artist: "X", cover: `https://i.scdn.co/image/${i}` }));
+
+    it("suena en el anfitrión, todos responden y el más rápido suma más", async () => {
+        const host = await openSocket(server.base);
+        const guest = await openSocket(server.base);
+        const slow = await openSocket(server.base);
+
+        host.sendJson({ type: "create_room", game: "buzzer", name: "Host" });
+        const { code, game } = await host.waitFor("joined");
+        assert.equal(game, "buzzer");
+        assert.equal((await (await fetch(`${server.base}/api/public/room/${code}`)).json()).game, "buzzer");
+
+        host.sendJson({ type: "set_songs", playlistName: "Fiesta", choices: songs, order: ["s2", "s4", "s0"] });
+        guest.sendJson({ type: "join_room", code, name: "Rápida" });
+        slow.sendJson({ type: "join_room", code, name: "Lento" });
+        await guest.waitFor("joined");
+        await slow.waitFor("joined");
+        await sleep(150);
+
+        host.sendJson({ type: "start_game" });
+        const start = await guest.waitFor("round_start");
+        assert.equal(start.index, 0);
+        assert.equal(start.choices.length, 6);
+        assert.equal(start.duration, 60000);
+
+        guest.sendJson({ type: "guess", trackId: "s1" });
+        assert.equal((await guest.waitFor("guess_result")).correct, false, "fallar no cierra la ronda");
+
+        guest.sendJson({ type: "guess", trackId: "s2" });
+        const fast = await guest.waitFor("guess_result");
+        assert.equal(fast.correct, true);
+
+        await sleep(400);
+        slow.sendJson({ type: "guess", trackId: "s2" });
+        const late = await slow.waitFor("guess_result");
+        assert.ok(late.points < fast.points, "quien acierta antes suma más");
+
+        host.sendJson({ type: "pass" });
+        const results = await host.waitFor("round_results");
+        assert.equal(results.track.name, "Canción 2");
+        assert.equal(results.results[0].name, "Rápida");
+
+        // El anfitrión salta la pausa y empieza la siguiente.
+        host.sendJson({ type: "next" });
+        assert.equal((await guest.waitFor("round_start")).index, 1);
+
+        // Si se va quien pone la música, vuelta a la sala.
+        host.close();
+        await sleep(200);
+        assert.ok(guest.messages.some(m => m.type === "room_state" && m.players.find(p => p.name === "Host")?.connected === false));
+
+        guest.close();
+        slow.close();
     });
 });

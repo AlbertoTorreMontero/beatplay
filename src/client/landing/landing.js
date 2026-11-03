@@ -42,13 +42,13 @@
 
 
 // Nombre del servicio de música configurado en el servidor.
-fetch("/auth/provider")
+fetch("/auth/config")
     .then(response => response.json())
     .then(({ name }) => document.querySelectorAll("[data-provider-name]").forEach(node => { node.textContent = name; }))
     .catch(() => { /* se queda el nombre por defecto */ });
 
 
-// El servidor vuelve a /?auth=denied o /?auth=error si el login falla.
+// Avisos antiguos de login (?auth=…): ahora los muestra la app.
 (() => {
     const notice = document.getElementById("authNotice");
     const reason = new URLSearchParams(location.search).get("auth");

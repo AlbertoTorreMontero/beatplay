@@ -7,10 +7,14 @@
  *
  * Un adaptador expone:
  *   init()                     prepara el reproductor (lanza si no puede)
- *   play(track, positionMs)    reproduce una canción del modelo neutro
- *   pause(), toggle(), seek(ms)
+ *   load(tracks)               carga la lista del juego, en orden (sin llamadas)
+ *   playAt(index)              reproduce la canción n de esa lista. Avanzar de una en una
+ *                              no debe gastar llamadas a la API: es la regla del proyecto
+ *   pause(), resume(), toggle(), seek(ms)   todo sin llamadas a la API
  *   onState(listener)          avisa con { ref, position, duration, paused }
  */
+
+import { toast } from "../ui.js";
 
 const ADAPTERS = {
     "spotify-sdk": () => import("./spotify-sdk.js"),
@@ -18,6 +22,7 @@ const ADAPTERS = {
 };
 
 let adapter = null;
+let queue = []; // lista cargada por el juego, aunque el reproductor aún no esté listo
 let ready = null;
 const listeners = new Set();
 
@@ -32,8 +37,9 @@ export function setupPlayer(kind) {
 
     ready = load
         ? load().then(async module => {
-            adapter = module.createPlayer({ emit });
+            adapter = module.createPlayer({ emit, warn: message => toast(message, { error: true }) });
             await adapter.init();
+            adapter.load(queue);
         })
         : Promise.reject(new Error("Este servicio de música no permite reproducir desde la web."));
 
@@ -49,7 +55,13 @@ async function withPlayer() {
 
 export const player = {
     ready: () => withPlayer().then(() => true),
-    play: async (track, positionMs = 0) => (await withPlayer()).play(track, positionMs),
+    // Los juegos cargan su lista una vez y piden canciones por posición.
+    load(tracks) {
+        queue = tracks;
+        adapter?.load(tracks);
+    },
+    playAt: async index => (await withPlayer()).playAt(index),
+    resume: async () => (await withPlayer()).resume(),
     toggle: async () => (await withPlayer()).toggle(),
     seek: async ms => (await withPlayer()).seek(ms),
 

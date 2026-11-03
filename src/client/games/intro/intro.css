@@ -1,0 +1,97 @@
+/* =========================================================
+   INTRO
+========================================================= */
+
+.intro-board { display: grid; gap: var(--space-5); max-width: 760px; width: 100%; margin: 0 auto; }
+
+/* Barra de fases: cada tramo mide lo que se desbloquea (1, 2, 4, 7, 11, 16 s). */
+.intro-stages { display: flex; gap: 3px; height: 10px; }
+.intro-stages span { min-width: 6px; border-radius: 2px; background: var(--line); transition: background var(--slow) var(--ease); }
+.intro-stages span.open { background: var(--accent); }
+
+.intro-play { display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-5) 0; text-align: center; }
+
+.intro-play-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 72px;
+    padding: 0 var(--space-6);
+    border-radius: 999px;
+    background: var(--bone);
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 2rem;
+    letter-spacing: 0.02em;
+    transition: transform var(--fast) var(--ease), background var(--fast);
+}
+
+.intro-play-button:hover { background: var(--accent-text); transform: scale(1.03); }
+
+/* Mientras suena el fragmento, el botón late. */
+.intro-play-button.playing { animation: beat 600ms ease-in-out infinite; }
+@keyframes beat { 50% { transform: scale(1.05); } }
+
+.nudge { animation: nudge 400ms var(--ease); }
+@keyframes nudge { 30% { transform: translateY(-4px); } 60% { transform: translateY(2px); } }
+
+.intro-status { color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+
+.intro-actions { display: flex; justify-content: flex-end; }
+
+.intro-attempts { display: grid; gap: var(--space-2); list-style: none; }
+.intro-attempts li { padding: var(--space-2) var(--space-3); border: 1px solid var(--line); border-radius: var(--radius); color: var(--grey); font-size: var(--text-sm); }
+.intro-attempts li.wrong { border-color: rgb(236 122 101 / 0.4); color: var(--bad); }
+
+
+/* ---------- Solución ---------- */
+
+.intro-reveal {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6) 0;
+    text-align: center;
+    animation: screen-in var(--slow) var(--ease);
+}
+
+.intro-cover { width: min(260px, 70vw); aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; box-shadow: 0 20px 60px rgb(0 0 0 / 0.6); animation: flip 520ms var(--ease); }
+.intro-reveal h2 { font-size: clamp(2.5rem, 1.8rem + 3vw, 4.5rem); overflow-wrap: anywhere; }
+.intro-artist { color: var(--bone-dim); font-family: var(--serif); font-size: var(--text-lead); }
+.intro-reveal .eyebrow { color: var(--good); }
+.intro-reveal.lost .eyebrow { color: var(--bad); }
+
+
+/* ---------- Buscador de canciones (también lo usa Pulsador) ---------- */
+
+.song-search { position: relative; }
+.song-search-input { min-height: 56px; font-size: 1.05rem; }
+
+.song-search-results {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    list-style: none;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+}
+
+.song-search-results:empty { display: none; }
+
+.song-search-results button {
+    width: 100%;
+    display: grid;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.song-search-results li:last-child button { border-bottom: 0; }
+.song-search-results button:hover, .song-search-results [aria-selected="true"] button { background: var(--ink-hover); }
+.song-search-results strong { font-weight: 500; }
+.song-search-results span { color: var(--grey); font-size: var(--text-sm); }

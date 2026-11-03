@@ -22,9 +22,10 @@ function createSessions(provider) {
         return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
     }
 
-    function start(req, res, tokens) {
+    // El perfil se guarda al entrar: /api/me no vuelve a preguntar al servicio.
+    function start(req, res, tokens, profile) {
         sessions.delete(getCookie(req, SESSION_COOKIE));
-        const session = { id: crypto.randomUUID(), tokens };
+        const session = { id: crypto.randomUUID(), tokens, profile };
         sessions.set(session.id, session);
         res.cookie(SESSION_COOKIE, session.id, { ...cookieOptions, maxAge: SESSION_MAX_AGE });
     }
@@ -66,16 +67,22 @@ function createSessions(provider) {
     }
 
     // State de OAuth: evita que alguien nos haga iniciar sesión con su cuenta sin querer.
-    function issueState(res) {
+    // Viaja junto a los datos del login (Client ID y verificador PKCE) hasta la vuelta del proveedor.
+    function issueState(res, login) {
         const state = crypto.randomBytes(16).toString("hex");
-        res.cookie(STATE_COOKIE, state, { ...cookieOptions, maxAge: STATE_MAX_AGE });
+        res.cookie(STATE_COOKIE, JSON.stringify({ state, login }), { ...cookieOptions, maxAge: STATE_MAX_AGE });
         return state;
     }
 
+    // Devuelve los datos del login si el state coincide; si no, null.
     function checkState(req, res, state) {
-        const expected = getCookie(req, STATE_COOKIE);
         res.clearCookie(STATE_COOKIE, cookieOptions);
-        return Boolean(state && expected && state === expected);
+        try {
+            const saved = JSON.parse(getCookie(req, STATE_COOKIE));
+            return state && saved?.state === state ? saved.login : null;
+        } catch {
+            return null;
+        }
     }
 
     return { start, destroy, requireSession, issueState, checkState };

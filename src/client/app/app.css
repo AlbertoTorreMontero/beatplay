@@ -19,10 +19,73 @@
 .boot .logo { font-size: 3rem; animation: breathe 1.6s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: 0.35; } }
 
-.login { display: grid; place-items: center; padding: var(--space-6); }
-.login-inner { width: min(640px, 100%); display: grid; justify-items: start; gap: var(--space-5); }
+.login { display: grid; place-items: center; padding: var(--space-7) var(--space-5); }
+.login-inner { width: min(680px, 100%); display: grid; gap: var(--space-5); }
 .login h1 { font-size: var(--text-h1); margin-top: var(--space-6); }
-.login .lead { margin-bottom: var(--space-3); }
+
+.login-view { display: grid; gap: var(--space-5); animation: screen-in var(--slow) var(--ease); }
+.login-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.login-actions .btn { white-space: normal; text-align: center; }
+.login-inner > * { min-width: 0; }
+.login-links { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); }
+
+.login-notice {
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--accent);
+    background: var(--ink-raised);
+    color: var(--bone-dim);
+}
+
+/* Guía de configuración: tres pasos, uno detrás de otro. */
+.setup-steps { display: grid; gap: var(--space-5); list-style: none; counter-reset: step; }
+
+.setup-steps > li {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    padding-left: 3rem;
+    counter-increment: step;
+}
+
+.setup-steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: -0.2rem;
+    color: var(--accent-text);
+    font-family: var(--display);
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.setup-steps strong { font-weight: 500; }
+.setup-steps span { color: var(--bone-dim); }
+.setup-steps em { color: var(--bone); font-style: normal; font-weight: 500; }
+.setup-steps .btn { margin-top: var(--space-1); }
+
+.copy-list { display: grid; gap: var(--space-2); width: 100%; margin: var(--space-1) 0; }
+.copy-list > div {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+.copy-list dt { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.copy-list dd { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; }
+.copy-list code { overflow: hidden; font-family: var(--mono); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+
+.setup-form { display: flex; gap: var(--space-2); width: 100%; }
+.setup-form .input { flex: 1; font-family: var(--mono); }
+
+@media (max-width: 600px) {
+    .login-actions .btn { width: 100%; }
+    .copy-list > div { grid-template-columns: 1fr; gap: var(--space-1); }
+    .setup-steps > li { padding-left: 2.25rem; }
+}
 
 
 /* ---------- Menú ---------- */
@@ -90,14 +153,14 @@
 
 .games {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     border-top: 1px solid var(--line);
     border-left: 1px solid var(--line);
 }
 
 .game-card {
     position: relative;
-    min-height: 240px;
+    min-height: 210px;
     padding: var(--space-5);
     display: flex;
     flex-direction: column;

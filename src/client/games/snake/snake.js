@@ -31,6 +31,7 @@ let ctx = null;
 let root = null;
 let source = [];
 let queue = [];
+let queueIndex = -1;
 let game = null;
 let mode = store.get("snakeMode", "classic");
 let frame = null;
@@ -67,6 +68,7 @@ async function mount(container, { playlist }) {
     document.addEventListener("keydown", onKey);
 
     setMode(mode);
+    loadQueue();
     reset();
     draw(0);
     overlay("ready");
@@ -95,8 +97,14 @@ function setupCanvas() {
 // PARTIDA
 // =====================================================
 
-function reset() {
+// La lista de canciones se carga una vez al entrar: otra partida sigue por donde iba, sin llamadas.
+function loadQueue() {
     queue = shuffle([...source]);
+    queueIndex = -1;
+    player.load(queue);
+}
+
+function reset() {
     game = {
         snake: [{ x: 10, y: 7, cover: null }],
         previous: [{ x: 10, y: 7 }],
@@ -248,10 +256,12 @@ function step() {
     }
 }
 
+// Cada portada pasa a la siguiente canción de la lista ya cargada: sin llamadas a la API.
 function nextTrack() {
-    if (!queue.length) queue = shuffle([...source]);
+    if (queueIndex + 1 >= queue.length) loadQueue();
+    queueIndex++;
 
-    const track = queue.pop();
+    const track = queue[queueIndex];
     game.track = track;
     playback = null; // hasta que llegue el estado de la canción nueva, el avance es 0
 
@@ -264,7 +274,7 @@ function nextTrack() {
         if (game?.track === track) game.color = color;
     });
 
-    player.play(track).catch(error => {
+    player.playAt(queueIndex).catch(error => {
         console.error("Snake:", error);
         toast(error.message, { error: true });
     });

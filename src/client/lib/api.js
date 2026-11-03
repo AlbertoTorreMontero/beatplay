@@ -25,6 +25,7 @@ export async function api(path, { method = "GET", body } = {}) {
     if (!response.ok) {
         const error = new Error(data?.error || "El servidor no ha respondido bien.");
         error.status = response.status;
+        error.retryAfter = data?.retryAfter || null;
         throw error;
     }
 
@@ -38,7 +39,7 @@ let playlistsPromise = null;
 // Las playlists se piden una vez por visita: el menú y Music Roulette comparten el resultado.
 export function getPlaylists({ refresh = false } = {}) {
     if (refresh || !playlistsPromise) {
-        playlistsPromise = api("/api/playlists");
+        playlistsPromise = api(refresh ? "/api/playlists?refresh=1" : "/api/playlists");
         playlistsPromise.catch(() => { playlistsPromise = null; });
     }
     return playlistsPromise;

@@ -1,16 +1,21 @@
-// WebSocket de Music Roulette, montado sobre el mismo servidor HTTP.
+// WebSocket de los juegos online (Music Roulette y Pulsador), montado sobre el mismo servidor HTTP.
 const { WebSocketServer } = require("ws");
-const { createRoulette } = require("./game");
+const { createHub } = require("./hub");
+const { createRoulette } = require("./roulette");
+const { createBuzzer } = require("./buzzer");
 
 const HEARTBEAT_MS = 25000;
 
-function attachRoulette(server, provider) {
+function attachRooms(server, provider) {
 
-    const roulette = createRoulette({ coverHosts: provider.coverHosts });
+    const hub = createHub({
+        roulette: createRoulette({ coverHosts: provider.coverHosts }),
+        buzzer: createBuzzer({ coverHosts: provider.coverHosts })
+    });
 
     const wss = new WebSocketServer({
         server,
-        maxPayload: 256 * 1024, // sobra para 100 canciones y evita mensajes gigantes
+        maxPayload: 256 * 1024, // sobra para 200 canciones y evita mensajes gigantes
         // Solo se aceptan conexiones desde nuestra propia web.
         verifyClient: ({ origin, req }) => {
             try {
@@ -22,8 +27,8 @@ function attachRoulette(server, provider) {
     });
 
     wss.on("connection", ws => {
-        const connection = { ws, player: roulette.createPlayer(ws) };
-        const disconnect = () => roulette.handleDisconnect(connection);
+        const connection = { ws, player: hub.createPlayer(ws) };
+        const disconnect = () => hub.handleDisconnect(connection);
 
         ws.isAlive = true;
         ws.on("pong", () => { ws.isAlive = true; });
@@ -35,7 +40,7 @@ function attachRoulette(server, provider) {
             } catch {
                 return;
             }
-            if (message && typeof message === "object") roulette.handleMessage(connection, message);
+            if (message && typeof message === "object") hub.handleMessage(connection, message);
         });
 
         ws.on("close", disconnect);
@@ -53,7 +58,7 @@ function attachRoulette(server, provider) {
 
     wss.on("close", () => clearInterval(heartbeat));
 
-    return wss;
+    return hub;
 }
 
-module.exports = { attachRoulette };
+module.exports = { attachRooms };

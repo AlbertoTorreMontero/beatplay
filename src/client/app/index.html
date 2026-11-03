@@ -8,7 +8,6 @@
     <meta name="description" content="Juegos con tus playlists: Snake, Bingo, Hipster y Music Roulette.">
     <meta name="theme-color" content="#0a0a0a">
 
-    <link rel="preload" href="/assets/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/app/app.css">
@@ -16,6 +15,8 @@
     <link rel="stylesheet" href="/games/bingo/bingo.css">
     <link rel="stylesheet" href="/games/hipster/hipster.css">
     <link rel="stylesheet" href="/games/roulette/roulette.css">
+    <link rel="stylesheet" href="/games/intro/intro.css">
+    <link rel="stylesheet" href="/games/buzzer/buzzer.css">
 </head>
 
 <body>
@@ -32,8 +33,74 @@
             <div class="login-inner">
                 <div class="logo">BEAT<span>PLAY</span></div>
                 <h1 id="loginTitle" class="display">PLAY YOUR MUSIC.</h1>
-                <p class="lead">Entra con tu cuenta de <span data-provider-name>Spotify</span> para jugar con tus playlists.</p>
-                <a href="/login" class="btn btn-lg">Entrar con <span data-provider-name>Spotify</span></a>
+
+                <p id="loginNotice" class="login-notice" role="alert" hidden></p>
+
+                <!-- Inicio -->
+                <div data-login="start" class="login-view">
+                    <p class="lead">Juega con tus playlists de <span data-provider-name>Spotify</span>. En las partidas en grupo, solo quien pone la música necesita cuenta.</p>
+                    <div class="login-actions">
+                        <button class="btn btn-lg" type="button" data-action="login">Entrar con <span data-provider-name>Spotify</span></button>
+                        <button class="btn btn-outline btn-lg" type="button" data-action="guest">Unirme a una partida sin cuenta</button>
+                    </div>
+                    <p class="login-links">
+                        <button class="link" type="button" data-show="device">Ya lo configuré en otro dispositivo</button>
+                        <button class="link" type="button" data-action="shared" hidden>Estoy en la lista de amigos de BeatPlay</button>
+                    </p>
+                </div>
+
+                <!-- Configuración: la primera vez, cada usuario conecta su propia app de Spotify -->
+                <div data-login="setup" class="login-view hidden">
+                    <p class="lead">Conecta tu cuenta una sola vez. Son unos 3 minutos y Spotify no te dejará hacerlo sin Premium.</p>
+
+                    <ol class="setup-steps">
+                        <li>
+                            <strong>Crea tu app en Spotify.</strong>
+                            <span>Inicia sesión en el panel de desarrolladores y pulsa <em>Create app</em>.</span>
+                            <a class="btn btn-outline" data-ref="dashboard" href="https://developer.spotify.com/dashboard/create" target="_blank" rel="noopener">Abrir el panel de Spotify ↗</a>
+                        </li>
+                        <li>
+                            <strong>Rellena el formulario copiando esto:</strong>
+                            <dl class="copy-list">
+                                <div><dt>App name</dt><dd><code>BeatPlay</code><button class="link" type="button" data-copy="BeatPlay">Copiar</button></dd></div>
+                                <div><dt>App description</dt><dd><code>Juegos con mis playlists</code><button class="link" type="button" data-copy="Juegos con mis playlists">Copiar</button></dd></div>
+                                <div><dt>Redirect URIs</dt><dd><code data-ref="redirectUri">—</code><button class="link" type="button" data-copy-ref="redirectUri">Copiar</button></dd></div>
+                            </dl>
+                            <span>Marca <em>Web API</em> y <em>Web Playback SDK</em>, acepta las condiciones y pulsa <em>Save</em>.</span>
+                        </li>
+                        <li>
+                            <strong>Pega aquí tu Client ID.</strong>
+                            <span>Está arriba en la página de tu app, en <em>Basic Information</em>.</span>
+                            <form class="setup-form" data-ref="setupForm">
+                                <input class="input" data-ref="clientId" placeholder="32 letras y números" autocomplete="off" spellcheck="false" aria-label="Client ID">
+                                <button class="btn" type="submit">Conectar</button>
+                            </form>
+                            <span class="muted small">Si Spotify dice <em>INVALID_CLIENT</em>, revisa que la Redirect URI esté copiada exactamente.</span>
+                        </li>
+                    </ol>
+
+                    <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
+                </div>
+
+                <!-- Invitado sin enlace: escribe el código -->
+                <div data-login="guest" class="login-view hidden">
+                    <p class="lead">Escribe el código de la sala que te han pasado. No necesitas cuenta.</p>
+                    <form class="setup-form" data-ref="guestForm">
+                        <input class="input rl-code-input" data-ref="guestCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12" aria-label="Código de la sala">
+                        <button class="btn" type="submit">Entrar</button>
+                    </form>
+                    <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
+                </div>
+
+                <!-- Otro dispositivo -->
+                <div data-login="device" class="login-view hidden">
+                    <p class="lead">Escribe el usuario o el email de tu cuenta de <span data-provider-name>Spotify</span> y entrarás con tu configuración.</p>
+                    <form class="setup-form" data-ref="deviceForm">
+                        <input class="input" data-ref="account" placeholder="tu@email.com" autocomplete="email" aria-label="Usuario o email">
+                        <button class="btn" type="submit">Entrar</button>
+                    </form>
+                    <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
+                </div>
             </div>
         </section>
 
@@ -61,16 +128,28 @@
                         <span class="game-card-text">Cada portada que comes cambia la canción.</span>
                     </button>
 
-                    <button class="game-card" type="button" role="radio" data-game="bingo">
-                        <span class="game-card-meta">Fiesta · en grupo</span>
-                        <span class="game-card-title display">Bingo</span>
-                        <span class="game-card-text">Cartones para imprimir y canciones para cantar.</span>
+                    <button class="game-card" type="button" role="radio" data-game="intro">
+                        <span class="game-card-meta">Oído · 1 jugador</span>
+                        <span class="game-card-title display">Intro</span>
+                        <span class="game-card-text">Adivínala con un segundo. Si no, un poco más.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="hipster">
                         <span class="game-card-meta">Quiz · 1 jugador</span>
                         <span class="game-card-title display">Hipster</span>
                         <span class="game-card-text">Coloca cada canción en su año.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="buzzer">
+                        <span class="game-card-meta">Fiesta · hasta 20</span>
+                        <span class="game-card-title display">Pulsador</span>
+                        <span class="game-card-text">Suena en tu móvil; gana quien la acierta antes.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="bingo">
+                        <span class="game-card-meta">Fiesta · en grupo</span>
+                        <span class="game-card-title display">Bingo</span>
+                        <span class="game-card-text">Cartones para imprimir y canciones para cantar.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="roulette">

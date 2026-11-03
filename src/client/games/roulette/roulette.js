@@ -5,25 +5,26 @@
  * Spotify no permiten sincronizar sus grabaciones con contenido visual.
  */
 import { refs, h, toast, $$ } from "../../lib/ui.js";
-import { getMe, tracks as loadTracks } from "../../lib/api.js";
+import { api, getMe, tracks as loadTracks } from "../../lib/api.js";
 import { playlistPicker } from "../../lib/playlists.js";
-
-const RECONNECT_ATTEMPTS = 8;
-const STORAGE_KEY = "rouletteRoom";
+import { createRoomClient } from "../../lib/room.js";
 
 let ui = {};
 let root = null;
-const room = { socket: null, code: null, token: null, playerId: null, hostId: null, minTracks: 5, reconnecting: false };
+let client = null;
+const room = { hostId: null, minTracks: 5 }; // lo que cuenta el servidor en room_state
 let timer = null;
+let guest = false;
 
 
 // =====================================================
 // CICLO DE VIDA
 // =====================================================
 
-async function mount(container, { code = "" } = {}) {
+async function mount(container, { code = "", guest: isGuest = false } = {}) {
     root = container;
     ui = refs(root);
+    guest = isGuest;
 
     root.addEventListener("click", onClick);
     ui.joinForm.addEventListener("submit", event => {
@@ -31,174 +32,59 @@ async function mount(container, { code = "" } = {}) {
         join();
     });
     ui.code.addEventListener("input", () => { ui.code.value = ui.code.value.toUpperCase(); });
+    ui.linkForm.addEventListener("submit", event => {
+        event.preventDefault();
+        choosePublicPlaylist(ui.link.value.trim());
+    });
 
-    document.addEventListener("visibilitychange", checkConnection);
-    window.addEventListener("online", checkConnection);
+    // Los invitados no tienen playlists cargadas: eligen la suya pegando el enlace.
+    if (guest) {
+        ui.playlists.hidden = true;
+        ui.linkLabel.textContent = "Pega el enlace de tu playlist de Spotify (tiene que ser pública)";
+        ui.playlistStatus.textContent = "Nadie verá cuál es.";
+    }
+
+    client = createRoomClient({
+        onMessage,
+        onLost: () => {
+            clearInterval(timer);
+            show("lobby");
+            toast("Se perdió la conexión con la sala.", { error: true });
+        }
+    });
 
     ui.code.value = code;
-    const named = getMe().then(me => { if (!ui.name.value) ui.name.value = me.name.slice(0, 20); }).catch(() => {});
+    const named = guest
+        ? Promise.resolve()
+        : getMe().then(me => { if (!ui.name.value) ui.name.value = me.name.slice(0, 20); }).catch(() => {});
 
-    await connect();
+    await client.connect();
     show("lobby");
 
-    // Si la pestaña se recargó en mitad de una sala, se vuelve a ella.
-    const saved = savedRoom();
-    if (saved?.code && saved?.token) {
-        Object.assign(room, saved);
-        send("rejoin", saved);
-    } else if (code) {
+    if (client.resumeSaved("roulette")) return;
+
+    if (code) {
         // Quien llega con un enlace de invitación entra directo, con su nombre de la cuenta.
         await named;
+        if (guest && !ui.name.value) return ui.name.focus(); // el invitado escribe su nombre y pulsa Entrar
         join();
     }
 }
 
 function unmount() {
     clearInterval(timer);
-    document.removeEventListener("visibilitychange", checkConnection);
-    window.removeEventListener("online", checkConnection);
-
-    const socket = room.socket;
-    room.socket = null; // así el cierre no intenta reconectar
-    if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: "leave_room" }));
-        socket.close();
-    }
-
-    forgetRoom();
+    client?.close();
+    client = null;
     root = null;
 }
 
 const show = view => $$("[data-view]", root).forEach(section => section.classList.toggle("hidden", section.dataset.view !== view));
 
 
-// =====================================================
-// SALA GUARDADA: un móvil puede descartar la pestaña en
-// segundo plano; con código y token se vuelve al mismo sitio.
-// =====================================================
-
-function saveRoom() {
-    try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ code: room.code, token: room.token }));
-    } catch { /* sin almacenamiento: solo funcionará la reconexión sin recargar */ }
-}
-
-function savedRoom() {
-    try {
-        return JSON.parse(sessionStorage.getItem(STORAGE_KEY));
-    } catch {
-        return null;
-    }
-}
-
-function forgetRoom() {
-    Object.assign(room, { code: null, token: null, playerId: null });
-    try {
-        sessionStorage.removeItem(STORAGE_KEY);
-    } catch { /* nada que borrar */ }
-}
-
-
-// =====================================================
-// CONEXIÓN
-// =====================================================
-
-function send(type, data = {}) {
-    if (room.socket?.readyState !== WebSocket.OPEN) {
-        toast("Sin conexión con la sala.", { error: true });
-        return;
-    }
-    room.socket.send(JSON.stringify({ type, ...data }));
-}
-
-function connect() {
-    if (room.socket?.readyState === WebSocket.OPEN) return Promise.resolve();
-
-    return new Promise((resolve, reject) => {
-        const socket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`);
-        let opened = false;
-        room.socket = socket;
-
-        socket.addEventListener("open", () => {
-            opened = true;
-            resolve();
-        });
-
-        socket.addEventListener("message", event => {
-            try {
-                onMessage(JSON.parse(event.data));
-            } catch (error) {
-                console.error("Roulette:", error);
-            }
-        });
-
-        socket.addEventListener("close", () => {
-            clearInterval(timer);
-            // Si ya no es el socket activo, el cierre lo pidió unmount() o lo sustituyó otro.
-            if (room.socket !== socket || !opened) return;
-            room.socket = null;
-
-            if (room.code && room.token) reconnect();
-            else {
-                show("lobby");
-                toast("Se perdió la conexión con la sala.", { error: true });
-            }
-        });
-
-        socket.addEventListener("error", () => reject(new Error("No se pudo conectar con el servidor de salas.")));
-    });
-}
-
-// Reintenta con espera creciente y recupera el sitio en la sala con el token.
-async function reconnect(attempt = 1) {
-    if (!root || !room.code || !room.token) return;
-
-    if (attempt === 1) {
-        if (room.reconnecting) return;
-        room.reconnecting = true;
-        toast("Conexión perdida. Reconectando…");
-    }
-
-    try {
-        await connect();
-        room.reconnecting = false;
-        send("rejoin", { code: room.code, token: room.token });
-    } catch {
-        if (attempt >= RECONNECT_ATTEMPTS) {
-            room.reconnecting = false;
-            forgetRoom();
-            show("lobby");
-            toast("No se pudo volver a la sala. Crea una nueva o únete otra vez.", { error: true });
-            return;
-        }
-        setTimeout(() => reconnect(attempt + 1), Math.min(1000 * attempt, 5000));
-    }
-}
-
-// Al volver a primer plano (móvil) el socket suele estar muerto aunque el navegador no lo sepa.
-function checkConnection() {
-    if (!document.hidden && room.code && room.socket?.readyState !== WebSocket.OPEN) reconnect();
-}
-
-async function connectAndSend(type, data) {
-    try {
-        await connect();
-        send(type, data);
-    } catch (error) {
-        toast(error.message, { error: true });
-    }
-}
-
 const playerName = () => ui.name.value.trim() || "Jugador";
 
 function join() {
-    const code = ui.code.value.trim().toUpperCase();
-    if (code.length !== 5) {
-        toast("El código tiene 5 letras o números.");
-        ui.code.focus();
-        return;
-    }
-    connectAndSend("join_room", { code, name: playerName() });
+    if (!client.join(ui.code.value, playerName())) ui.code.focus();
 }
 
 
@@ -209,15 +95,12 @@ function join() {
 function onMessage(message) {
     switch (message.type) {
         case "joined":
-            Object.assign(room, { code: message.code, playerId: message.playerId, token: message.token });
-            saveRoom();
-            ui.roomCode.textContent = room.code;
+            ui.roomCode.textContent = message.code;
             if (!message.resumed) show("room");
-            if (!ui.playlists.children.length) playlistPicker(ui.playlists, { onSelect: choosePlaylist });
+            if (!guest && !ui.playlists.children.length) playlistPicker(ui.playlists, { onSelect: choosePlaylist });
             break;
 
         case "rejoin_failed":
-            forgetRoom();
             show("lobby");
             toast("Esa sala ya no existe.");
             break;
@@ -249,12 +132,12 @@ function renderRoom(state) {
         return h("li", { class: `rl-player ${player.ready && player.connected ? "ready" : ""} ${player.connected ? "" : "offline"}` },
             h("span", { class: "rl-player-name" },
                 player.name,
-                player.id === room.playerId && h("small", {}, " (tú)"),
+                player.id === client.room.playerId && h("small", {}, " (tú)"),
                 player.id === state.hostId && h("small", {}, " · anfitrión")),
             h("span", { class: "rl-player-state" }, status));
     }));
 
-    const isHost = state.hostId === room.playerId;
+    const isHost = state.hostId === client.room.playerId;
     const enough = state.players.length >= 2;
     const allReady = state.players.every(player => player.ready);
 
@@ -279,10 +162,35 @@ async function choosePlaylist(playlist) {
             return;
         }
 
-        send("set_playlist", { playlist: { id: playlist.id, name: playlist.name }, tracks });
+        client.send("set_playlist", { playlist: { id: playlist.id, name: playlist.name }, tracks });
         ui.playlistStatus.textContent = `Lista: ${playlist.name}. Nadie más la ve.`;
     } catch (error) {
         ui.playlistStatus.textContent = error.message;
+    }
+}
+
+// Playlist pública por enlace: la lee el servidor sin iniciar sesión.
+async function choosePublicPlaylist(url) {
+    if (!url) return ui.link.focus();
+
+    ui.playlistStatus.textContent = "Leyendo la playlist…";
+    ui.linkForm.querySelector("button").setAttribute("aria-busy", "true");
+
+    try {
+        const { name, tracks } = await api("/api/public/playlist", { method: "POST", body: { url } });
+
+        if (tracks.length < room.minTracks) {
+            ui.playlistStatus.textContent = `Esa playlist tiene menos de ${room.minTracks} canciones con portada. Prueba con otra.`;
+            return;
+        }
+
+        client.send("set_playlist", { playlist: { id: url, name }, tracks });
+        ui.playlistStatus.textContent = `Lista: ${name}. Nadie más la ve.`;
+        ui.playlists.querySelectorAll(".playlist").forEach(card => card.setAttribute("aria-pressed", "false"));
+    } catch (error) {
+        ui.playlistStatus.textContent = error.message;
+    } finally {
+        ui.linkForm.querySelector("button").removeAttribute("aria-busy");
     }
 }
 
@@ -321,7 +229,7 @@ function renderRound(data) {
             onclick: event => {
                 event.currentTarget.classList.add("chosen");
                 lockAnswers();
-                send("vote", { ownerId: answer.id });
+                client.send("vote", { ownerId: answer.id });
             }
         }, answer.name)
     ));
@@ -378,7 +286,7 @@ function renderFinal(scoreboard) {
     ui.winner.textContent = scoreboard[0]?.name || "nadie";
     renderScores(ui.finalScores, scoreboard, false);
 
-    const isHost = room.hostId === room.playerId;
+    const isHost = room.hostId === client.room.playerId;
     ui.again.disabled = !isHost;
     ui.again.textContent = isHost ? "Otra partida" : "Esperando al anfitrión";
 }
@@ -398,12 +306,12 @@ function onClick(event) {
     const action = event.target.closest("[data-action]")?.dataset.action;
 
     switch (action) {
-        case "create": return connectAndSend("create_room", { name: playerName() });
-        case "start": return send("start_game");
-        case "again": return send("play_again");
-        case "copy-code": return copy(room.code, "Código copiado.");
+        case "create": return client.create("roulette", playerName());
+        case "start": return client.send("start_game");
+        case "again": return client.send("play_again");
+        case "copy-code": return copy(client.room.code, "Código copiado.");
         // El enlace lleva el código: quien lo abre en otro dispositivo entra directo a la sala.
-        case "copy-link": return copy(`${location.origin}/app#sala=${room.code}`, "Enlace copiado. Mándaselo a tus amigos.");
+        case "copy-link": return copy(client.inviteLink(), "Enlace copiado. Mándaselo a tus amigos.");
     }
 }
 

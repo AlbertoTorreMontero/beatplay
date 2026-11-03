@@ -1,0 +1,49 @@
+<div class="game intro">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="playlist">Intro</span>
+            <h1 class="display">Intro</h1>
+        </div>
+        <div class="stats">
+            <div class="stat"><span>Puntos</span><strong data-ref="score">0</strong></div>
+            <div class="stat"><span>Racha</span><strong data-ref="streak">0</strong></div>
+            <div class="stat"><span>Récord</span><strong data-ref="best">0</strong></div>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+    <section data-ref="board" class="intro-board" aria-label="Partida">
+
+        <!-- Cuánto se ha desbloqueado de la canción: 1, 2, 4, 7, 11 y 16 segundos -->
+        <div data-ref="stages" class="intro-stages" aria-hidden="true"></div>
+
+        <div class="intro-play">
+            <button data-ref="play" class="intro-play-button" type="button">
+                <span aria-hidden="true">▶</span>
+                <span data-ref="playLabel">Escuchar 1 s</span>
+            </button>
+            <p data-ref="status" class="intro-status" role="status">Pulsa para escuchar el primer segundo.</p>
+        </div>
+
+        <div data-ref="search" class="song-search"></div>
+
+        <div class="intro-actions">
+            <button data-ref="skip" class="btn btn-outline" type="button">Saltar (+1 s)</button>
+        </div>
+
+        <ol data-ref="attempts" class="intro-attempts" aria-label="Intentos"></ol>
+    </section>
+
+    <!-- Solución de cada canción -->
+    <section data-ref="reveal" class="intro-reveal hidden" aria-live="polite">
+        <img data-ref="cover" class="intro-cover" alt="">
+        <div class="intro-reveal-text">
+            <span data-ref="verdict" class="eyebrow"></span>
+            <h2 data-ref="title" class="display"></h2>
+            <p data-ref="artist" class="intro-artist"></p>
+        </div>
+        <button data-ref="next" class="btn btn-lg" type="button">Siguiente canción</button>
+    </section>
+
+</div>
