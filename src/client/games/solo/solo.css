@@ -1,0 +1,140 @@
+/* =========================================================
+   JUEGOS INDIVIDUALES NUEVOS (Portada pixelada, Más o menos, Parejas, Puzzle, Capas)
+   Todos caben en la pantalla del móvil sin scroll (.game.fit).
+========================================================= */
+
+.solo-board { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); }
+.solo-board > * { width: min(100%, 620px); }
+.solo-status { min-height: 1.4em; color: var(--bone-dim); font-size: var(--text-sm); text-align: center; }
+.solo-status.good { color: var(--good); }
+.solo-status.bad { color: var(--bad); }
+.solo-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.solo-attempts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); list-style: none; font-size: var(--text-xs); color: var(--grey); }
+.solo-attempts li { padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; }
+.solo-attempts .wrong { color: var(--bad); border-color: var(--bad); }
+
+/* Pantalla de resultado común */
+.solo-reveal { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); text-align: center; animation: screen-in var(--slow) var(--ease); }
+.solo-reveal img { width: min(240px, 56vw, 32dvh); aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; animation: flip 520ms var(--ease); }
+.solo-reveal h2 { font-size: clamp(2.2rem, 1.6rem + 3vw, 3.6rem); line-height: 0.95; overflow-wrap: anywhere; }
+.solo-reveal.lost .eyebrow { color: var(--bad); }
+
+/* Etapas (barra que se va abriendo): Pixelada y Capas */
+.solo-stages { display: flex; gap: 4px; }
+.solo-stages span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); transition: background var(--fast); }
+.solo-stages span.open { background: var(--accent-text); }
+
+.solo-modes { display: flex; justify-content: center; }
+
+
+/* ---------- Portada pixelada ---------- */
+
+.pixel-canvas {
+    width: min(100%, 44dvh, 420px) !important;
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    image-rendering: pixelated;
+    box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+
+/* ---------- Más o menos ---------- */
+
+.hl-arena { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: stretch; }
+.hl-card { position: relative; display: grid; align-content: start; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; animation: screen-in var(--slow) var(--ease); }
+.hl-card img { width: 100%; aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; background: var(--ink-raised); }
+.hl-card strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hl-card .muted { font-size: var(--text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hl-value { font-family: var(--display); font-size: clamp(2.4rem, 1.8rem + 3vw, 3.8rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.hl-value.hidden-value { color: var(--grey); }
+.hl-card.playing { border-color: var(--accent-text); }
+.hl-card.right .hl-value { color: var(--good); }
+.hl-card.wrong .hl-value { color: var(--bad); }
+.hl-label { color: var(--accent-text); font-family: var(--mono); font-size: var(--text-xs); }
+.hl-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.hl-buttons .btn { min-height: 64px; font-size: 1rem; }
+.hl-question { text-align: center; font-family: var(--serif); font-size: var(--text-lead); }
+
+
+/* ---------- Parejas sonoras ---------- */
+
+.pairs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); width: min(100%, 520px, 70dvh) !important; }
+.pairs-card {
+    position: relative;
+    aspect-ratio: 1;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--ink-raised);
+    overflow: hidden;
+    transition: transform 200ms var(--ease), border-color var(--fast), background var(--fast);
+    touch-action: manipulation;
+}
+.pairs-card::after { content: "♪"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--line-strong); font-size: 1.6rem; }
+.pairs-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--fast); }
+.pairs-card.open { border-color: var(--accent-text); background: var(--accent); transform: scale(1.04); }
+.pairs-card.open::after { color: var(--bone); content: "♫"; animation: throb 500ms var(--ease) infinite alternate; }
+.pairs-card.show img, .pairs-card.done img { opacity: 1; }
+.pairs-card.done { border-color: var(--good); }
+.pairs-card.done::after, .pairs-card.show::after { content: none; }
+.pairs-card:disabled { opacity: 1; }
+
+
+/* ---------- Puzzle de portada ---------- */
+
+.puzzle-grid {
+    --n: 3;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), 1fr);
+    gap: 2px;
+    width: min(100%, 46dvh, 460px) !important;
+    aspect-ratio: 1;
+    padding: 2px;
+    border-radius: var(--radius);
+    background: var(--line);
+    touch-action: manipulation;
+}
+.puzzle-tile {
+    border-radius: 2px;
+    background-color: var(--ink-raised);
+    background-repeat: no-repeat;
+    transition: transform 120ms var(--ease);
+}
+.puzzle-tile.empty { background: transparent; }
+.puzzle-tile.movable { cursor: pointer; }
+.puzzle-tile.movable:active { transform: scale(0.96); }
+.puzzle-grid.solved { gap: 0; padding: 0; animation: bump 400ms var(--ease); }
+.puzzle-grid.solved .puzzle-tile { border-radius: 0; }
+.puzzle-ref { width: 56px; aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; }
+.puzzle-top { display: flex; align-items: center; gap: var(--space-3); }
+.puzzle-top div { display: grid; min-width: 0; }
+.puzzle-top strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+/* ---------- Capas ---------- */
+
+.layers-wave { display: flex; align-items: center; justify-content: center; gap: 3px; height: 64px; }
+.layers-wave i { width: 5px; height: calc(var(--h, 60%) * 0.35); border-radius: 3px; background: var(--accent-text); opacity: 0.5; transition: height 120ms linear; }
+.layers-wave.playing i { opacity: 1; animation: wave 700ms ease-in-out infinite alternate; }
+.layers-wave i:nth-child(odd) { animation-delay: -350ms; }
+.layers-wave i:nth-child(3n) { animation-delay: -150ms; }
+@keyframes wave { from { height: 15%; } to { height: var(--h, 80%); } }
+.layers-play { justify-self: center; min-width: 220px; }
+.layers-step { text-align: center; font-family: var(--mono); font-size: var(--text-xs); color: var(--accent-text); }
+
+
+@media (max-width: 600px) {
+    .hl-arena { gap: var(--space-2); }
+    .hl-card { padding: var(--space-2); }
+    .hl-card img { width: 100%; }
+    .solo-board { gap: var(--space-3); }
+    .pairs-grid { grid-template-columns: repeat(3, 1fr); width: min(100%, 52dvh) !important; }
+}
+
+@media (max-height: 700px) {
+    .hl-card img { max-height: 24dvh; width: auto; justify-self: center; }
+    .pixel-canvas { width: min(100%, 38dvh) !important; }
+    .puzzle-grid { width: min(100%, 40dvh) !important; }
+}
+.puzzle-tile { aspect-ratio: 1; padding: 0; border: 0; }

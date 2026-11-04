@@ -20,8 +20,13 @@ import bid from "../games/bid/bid.js";
 import auction from "../games/auction/auction.js";
 import karaoke from "../games/karaoke/karaoke.js";
 import draw from "../games/draw/draw.js";
+import pixel from "../games/pixel/pixel.js";
+import higher from "../games/higher/higher.js";
+import pairs from "../games/pairs/pairs.js";
+import puzzle from "../games/puzzle/puzzle.js";
+import layers from "../games/layers/layers.js";
 
-const GAMES = { snake, intro, hipster, bingo, buzzer, roulette, chairs, impostor, djbattle, bluff, bid, auction, karaoke, draw };
+const GAMES = { snake, intro, hipster, layers, pixel, higher, pairs, puzzle, bingo, buzzer, roulette, chairs, impostor, djbattle, bluff, bid, auction, karaoke, draw };
 
 const state = {
     game: null, // nada elegido al entrar: las playlists solo salen al elegir un juego individual

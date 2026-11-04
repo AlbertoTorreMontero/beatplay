@@ -5,11 +5,12 @@
  * canción acelera o frena (con una transición corta, pero se nota). El tablero toma el color
  * de la portada y late al compás.
  *
- * El tempo no lo da Spotify (ya no lo ofrece a apps nuevas): lo pide el servidor a Deezer por
- * ISRC, una sola petición para toda la playlist y solo si se juega en Synth.
+ * El tempo no lo da Spotify (ya no lo ofrece a apps nuevas): sale de Deezer y, si Deezer no lo
+ * sabe, se calcula analizando su muestra de 30 s (lib/audio.js). Se guarda en el navegador.
  */
 import { refs, toast, pulse, shuffle, store } from "../../lib/ui.js";
-import { api, tracks as loadTracks } from "../../lib/api.js";
+import { tracks as loadTracks } from "../../lib/api.js";
+import { tempoFor } from "../../lib/audio.js";
 import { player, positionNow } from "../../lib/player/index.js";
 
 // La rejilla se adapta a la pantalla al entrar: apaisada en el ordenador, vertical en el móvil.
@@ -58,7 +59,7 @@ let gridReady = false;
 
 const images = new Map();
 const palettes = new Map();
-let tempos = null; // promesa: isrc → BPM (se pide una vez por playlist)
+let tempos = null; // tempos de la playlist (se piden una vez por playlist)
 let bpms = new Map();
 
 
@@ -72,6 +73,7 @@ async function mount(container, { playlist }) {
     source = await loadTracks.sample(playlist.id);
     tempos = null;
     bpms = new Map();
+    queue = [];
 
     if (!source.length) throw new Error("Esta playlist no tiene canciones que se puedan reproducir.");
 
@@ -320,20 +322,29 @@ function setMode(next) {
     if (!game?.running) draw(0);
 }
 
-// Tempo de toda la playlist en una sola petición a nuestro servidor (que lo pide a Deezer).
+// Tempo de la playlist: lo guardado y Deezer (una petición). Las que falten se calculan
+// escuchando su muestra, pero solo las próximas en sonar (ver tempoAhead), no toda la playlist.
 function loadTempos() {
     if (tempos) return tempos;
-    const codes = source.map(track => track.isrc).filter(Boolean);
-    tempos = codes.length
-        ? api(`/api/tempo?isrc=${codes.join(",")}`).then(result => {
-            for (const [isrc, bpm] of Object.entries(result || {})) if (bpm) bpms.set(isrc, bpm);
-            if (ui.bpm && game?.track) ui.bpm.textContent = bpmOf(game.track) || "—";
-        }).catch(() => {})
-        : Promise.resolve();
+    tempos = tempoFor(queue.length ? queue : source, { analyze: 0, onUpdate: tempoKnown });
+    tempos.forEach((bpm, id) => bpms.set(id, bpm));
+    tempos.ready.then(() => tempoAhead());
     return tempos;
 }
 
-const bpmOf = track => (track?.isrc && bpms.get(track.isrc)) || null;
+function tempoKnown(track, bpm) {
+    bpms.set(track.id, bpm);
+    if (game?.track === track) ui.bpm.textContent = bpm;
+}
+
+// La que suena y las dos siguientes: si no se sabe su tempo, se calcula ya.
+function tempoAhead() {
+    if (mode !== "synth" || !queue.length) return;
+    const next = queue.slice(Math.max(0, queueIndex), Math.max(0, queueIndex) + 3).filter(track => !bpms.has(track.id));
+    if (next.length) tempoFor(next, { onUpdate: tempoKnown });
+}
+
+const bpmOf = track => (track && bpms.get(track.id)) || null;
 
 // Avance (0-1) de la canción que suena, solo si el reproductor habla de esta canción.
 function songProgress() {
@@ -424,7 +435,10 @@ function nextTrack() {
     if (track.cover) ui.cover.src = track.cover;
     ui.track.textContent = track.name;
     ui.artist.textContent = track.artist;
-    if (mode === "synth") showTempo(game.track === track && game.running ? game.prevBpm : null, track);
+    if (mode === "synth") {
+        showTempo(game.track === track && game.running ? game.prevBpm : null, track);
+        tempoAhead();
+    }
 
     coverColor(track.cover).then(color => {
         if (game?.track === track) game.color = color;
@@ -439,7 +453,7 @@ function nextTrack() {
 // Muestra el BPM nuevo y, si cambia mucho, avisa en el tablero de que acelera o frena.
 function showTempo(previous, track) {
     const bpm = bpmOf(track);
-    ui.bpm.textContent = bpm || "—";
+    ui.bpm.textContent = bpm || "···"; // aún calculándose
     pulse(ui.bpm);
     if (previous && bpm && Math.abs(bpm - previous) >= 8) {
         game.tempoFlash = { faster: bpm > previous, bpm, at: performance.now() };

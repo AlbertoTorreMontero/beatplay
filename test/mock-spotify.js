@@ -50,16 +50,44 @@ const track = (user, n) => ({
 
 let tokenCounter = 0;
 
+const tempoOf = n => 70 + (n * 37) % 110;
+
+// WAV mono de 12 s con un golpe grave (bombo) en cada pulso y otro agudo a contratiempo.
+function clickTrack(bpm, seconds = 12, rate = 22050) {
+    const samples = seconds * rate;
+    const data = new Int16Array(samples);
+    const beat = 60 / bpm;
+    for (let i = 0; i < samples; i++) {
+        const t = i / rate;
+        const sinceBeat = t % beat;
+        const sinceOff = (t + beat / 2) % beat;
+        let v = sinceBeat < 0.08 ? Math.sin(2 * Math.PI * 60 * sinceBeat) * Math.exp(-sinceBeat * 40) : 0;
+        if (sinceOff < 0.03) v += 0.25 * Math.sin(2 * Math.PI * 3000 * sinceOff) * Math.exp(-sinceOff * 120);
+        data[i] = Math.max(-1, Math.min(1, v * 0.9)) * 32767;
+    }
+    const header = Buffer.alloc(44);
+    header.write("RIFF", 0); header.writeUInt32LE(36 + samples * 2, 4); header.write("WAVE", 8);
+    header.write("fmt ", 12); header.writeUInt32LE(16, 16); header.writeUInt16LE(1, 20); header.writeUInt16LE(1, 22);
+    header.writeUInt32LE(rate, 24); header.writeUInt32LE(rate * 2, 28); header.writeUInt16LE(2, 32); header.writeUInt16LE(16, 34);
+    header.write("data", 36); header.writeUInt32LE(samples * 2, 40);
+    return Buffer.concat([header, Buffer.from(data.buffer)]);
+}
+
 globalThis.fetch = async (url, options = {}) => {
 
     url = String(url);
 
     if (url.startsWith("https://embed.spotify.com/")) return publicEmbed(new URL(url).searchParams.get("uri"));
 
-    // Deezer (tempo de las canciones): BPM según el número de la canción; algunas sin dato (0).
+    // Deezer: BPM según el número de la canción (algunas sin dato: 0) y una muestra de audio
+    // con golpes a ese tempo (también para las que Deezer no sabe: así se prueba el detector).
     if (url.startsWith("https://api.deezer.com/track/isrc:")) {
         const n = Number(url.slice(-5));
-        return json({ id: n, bpm: n % 5 === 4 ? 0 : 70 + (n * 37) % 110 });
+        return json({ id: n, bpm: n % 5 === 4 ? 0 : tempoOf(n), preview: `https://cdnt-preview.dzcdn.net/stream/${n}.wav` });
+    }
+    if (url.startsWith("https://cdnt-preview.dzcdn.net/stream/")) {
+        const n = Number(url.match(/(\d+)\.wav/)[1]);
+        return new Response(clickTrack(tempoOf(n)), { headers: { "Content-Type": "audio/wav" } });
     }
 
     if (url.startsWith("https://accounts.spotify.com/api/token")) {

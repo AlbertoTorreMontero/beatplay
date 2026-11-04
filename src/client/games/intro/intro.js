@@ -1,8 +1,10 @@
 /*
  * INTRO
- * Adivina la canción con el primer segundo. Si no, se desbloquea un poco más:
- * 1, 2, 4, 7, 11 y 16 segundos. Cuanto antes la aciertes, más puntos. Si fallas
- * la última oportunidad, se acaba la racha.
+ * Dos modos:
+ *  - Normal, "Una décima": suena una décima de segundo de un punto cualquiera de la canción.
+ *    Si no, 0,5 · 1 · 2 · 4 y 8 s. Sale de la muestra de Deezer (sin llamadas a Spotify).
+ *  - Fácil: el principio de la canción, 1, 2, 4, 7, 11 y 16 segundos, por Spotify.
+ * Cuanto antes la aciertes, más puntos. Si fallas la última oportunidad, se acaba la racha.
  *
  * Llamadas a la API: una al empezar (la lista entera va a la cola del reproductor).
  * Repetir el fragmento, pausar y pasar a la siguiente canción lo hace el SDK.
@@ -11,8 +13,12 @@ import { refs, h, toast, pulse, shuffle, store } from "../../lib/ui.js";
 import { tracks as loadTracks } from "../../lib/api.js";
 import { player, positionNow } from "../../lib/player/index.js";
 import { songSearch } from "../../lib/song-search.js";
+import { loadPreview, playClip } from "../../lib/audio.js";
 
-const STAGES = [1000, 2000, 4000, 7000, 11000, 16000];
+const MODES = {
+    normal: [100, 500, 1000, 2000, 4000, 8000],
+    easy: [1000, 2000, 4000, 7000, 11000, 16000]
+};
 const POINTS = [6, 5, 4, 3, 2, 1];
 const MIN_SONGS = 5;
 
@@ -30,6 +36,12 @@ let stopAt = null;   // ms en los que hay que cortar el fragmento que suena
 let watcher = null;
 let fallback = null;
 let heard = false;   // ¿ha sonado ya esta canción? (si no, resume() reanudaría la anterior)
+let mode = store.get("introMode", "normal");
+let STAGES = MODES[mode] || MODES.normal;
+let clip = null;     // muestra de Deezer de la canción actual (modo normal)
+let clipOffset = 0;
+let stopClip = null;
+let round = 0;
 
 
 // =====================================================
@@ -52,8 +64,7 @@ async function mount(container, { playlist }) {
     search = songSearch(ui.search, { onPick: guess });
     search.setChoices([...tracks].sort((a, b) => a.name.localeCompare(b.name)));
 
-    ui.stages.replaceChildren(...STAGES.map((ms, i) =>
-        h("span", { style: `flex-grow: ${ms - (STAGES[i - 1] || 0)}` })));
+    setMode(mode, false);
 
     unsubscribe = player.onState(state => { playback = state; });
     root.addEventListener("click", onClick);
@@ -62,6 +73,29 @@ async function mount(container, { playlist }) {
     streak = 0;
     nextSong();
 }
+
+function setMode(next, restart = true) {
+    mode = MODES[next] ? next : "normal";
+    STAGES = MODES[mode];
+    store.set("introMode", mode);
+    root.querySelectorAll("[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode)));
+    // En normal las barras crecen en escala logarítmica (si no, la décima no se vería).
+    ui.stages.replaceChildren(...STAGES.map((ms, i) => h("span", {
+        style: `flex-grow: ${mode === "normal" ? 1 : ms - (STAGES[i - 1] || 0)}`
+    })));
+    if (restart) {
+        stopWatching();
+        player.pause();
+        index--;
+        score = 0;
+        streak = 0;
+        ui.score.textContent = 0;
+        ui.streak.textContent = 0;
+        nextSong();
+    }
+}
+
+const seconds = ms => `${(ms / 1000).toLocaleString("es-ES")} s`;
 
 function unmount() {
     stopWatching();
@@ -87,17 +121,48 @@ function nextSong() {
     ui.attempts.replaceChildren();
     ui.reveal.classList.add("hidden");
     ui.board.classList.remove("hidden");
-    search.disable(false);
     search.clear();
+    clip = null;
     renderStage();
-    setStatus("Pulsa para escuchar el primer segundo.");
+
+    if (mode === "easy") {
+        search.disable(false);
+        ui.play.disabled = false;
+        setStatus("Pulsa para escuchar el primer segundo.");
+        ui.play.focus();
+        return;
+    }
+    loadClip(++round);
+}
+
+// Modo normal: busca la muestra; las canciones sin muestra se saltan.
+async function loadClip(id, tries = 0) {
+    search.disable(true);
+    ui.play.disabled = true;
+    setStatus("Preparando la canción…");
+    const track = deck[index];
+    const buffer = await loadPreview(track);
+    if (!root || id !== round) return;
+    if (!buffer) {
+        if (tries > 8) {
+            setStatus("Estas canciones no tienen muestra. Prueba el modo fácil.");
+            return;
+        }
+        if (++index >= deck.length) index = 0;
+        return loadClip(id, tries + 1);
+    }
+    clip = buffer;
+    clipOffset = 2 + Math.random() * Math.max(0, buffer.duration - 12);
+    if (deck[index + 1]) loadPreview(deck[index + 1]);
+    search.disable(false);
+    ui.play.disabled = false;
+    setStatus("Pulsa para escuchar una décima de segundo.");
     ui.play.focus();
 }
 
 function renderStage() {
-    const seconds = STAGES[stage] / 1000;
-    ui.playLabel.textContent = `Escuchar ${seconds} s`;
-    ui.skip.textContent = stage < STAGES.length - 1 ? `Saltar (+${(STAGES[stage + 1] - STAGES[stage]) / 1000} s)` : "Rendirse";
+    ui.playLabel.textContent = `Escuchar ${seconds(STAGES[stage])}`;
+    ui.skip.textContent = stage < STAGES.length - 1 ? `Saltar (${seconds(STAGES[stage + 1])})` : "Rendirse";
     [...ui.stages.children].forEach((bar, i) => bar.classList.toggle("open", i <= stage));
 }
 
@@ -107,6 +172,19 @@ async function playFragment() {
     stopAt = STAGES[stage];
     ui.play.classList.add("playing");
     setStatus("Escuchando…");
+
+    if (mode === "normal") {
+        if (!clip) return stopWatching();
+        stopClip = playClip(clip, {
+            offset: clipOffset,
+            duration: stopAt / 1000,
+            onEnd: () => {
+                ui.play?.classList.remove("playing");
+                setStatus("¿La tienes? Escríbela abajo, vuelve a escucharla o salta.");
+            }
+        });
+        return;
+    }
 
     try {
         await player.playAt(index);
@@ -133,6 +211,8 @@ async function playFragment() {
 }
 
 function stopWatching() {
+    stopClip?.();
+    stopClip = null;
     clearInterval(watcher);
     clearTimeout(fallback);
     watcher = null;
@@ -159,7 +239,7 @@ function advance() {
     stage++;
     renderStage();
     pulse(ui.play, "nudge");
-    setStatus(`Ahora puedes escuchar ${STAGES[stage] / 1000} s.`);
+    setStatus(`Ahora puedes escuchar ${seconds(STAGES[stage])}.`);
 }
 
 function finishSong(correct) {
@@ -186,7 +266,7 @@ function finishSong(correct) {
     ui.cover.src = answer.cover || "";
     ui.cover.hidden = !answer.cover;
     ui.verdict.textContent = correct
-        ? `¡Acertada con ${STAGES[stage] / 1000} s! +${points}`
+        ? `¡Acertada con ${seconds(STAGES[stage])}! +${points}`
         : `Se acabó la racha: ${score} puntos`;
     ui.title.textContent = answer.name;
     ui.artist.textContent = answer.artist;
@@ -209,7 +289,11 @@ function finishSong(correct) {
 const setStatus = text => { ui.status.textContent = text; };
 
 function onClick(event) {
-    if (event.target.closest("[data-ref=play]")) playFragment();
+    const modeButton = event.target.closest("[data-mode]");
+    if (modeButton) {
+        if (modeButton.dataset.mode !== mode) setMode(modeButton.dataset.mode);
+    }
+    else if (event.target.closest("[data-ref=play]")) playFragment();
     else if (event.target.closest("[data-ref=skip]")) skip();
     else if (event.target.closest("[data-ref=next]")) {
         ui.score.textContent = score;

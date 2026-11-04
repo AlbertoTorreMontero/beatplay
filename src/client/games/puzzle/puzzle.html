@@ -1,0 +1,42 @@
+<div class="game fit puzzle">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="playlist">Puzzle de portada</span>
+            <h1 class="display">Puzzle</h1>
+        </div>
+        <div class="stats">
+            <div class="stat"><span>Tiempo</span><strong data-ref="time">0:00</strong></div>
+            <div class="stat"><span>Movs.</span><strong data-ref="moves">0</strong></div>
+            <div class="stat"><span>Puntos</span><strong data-ref="score">0</strong></div>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+    <section data-ref="board" class="solo-board" aria-label="Partida">
+        <div class="solo-modes">
+            <div class="segmented" role="group" aria-label="Tamaño">
+                <button type="button" data-size="3" aria-pressed="true">3 × 3</button>
+                <button type="button" data-size="4" aria-pressed="false">4 × 4</button>
+            </div>
+        </div>
+        <div class="puzzle-top">
+            <img data-ref="ref" class="puzzle-ref" alt="Portada original">
+            <div>
+                <strong data-ref="track">—</strong>
+                <span data-ref="hint" class="muted small">Ordena la portada antes de que acabe la canción.</span>
+            </div>
+        </div>
+        <div data-ref="grid" class="puzzle-grid" aria-label="Puzzle"></div>
+        <p data-ref="status" class="solo-status" role="status">Toca una pieza junto al hueco para moverla.</p>
+    </section>
+
+    <section data-ref="reveal" class="solo-reveal hidden" aria-live="polite">
+        <img data-ref="cover" alt="">
+        <span data-ref="verdict" class="eyebrow"></span>
+        <h2 data-ref="title" class="display"></h2>
+        <p data-ref="artist" class="muted"></p>
+        <button data-ref="next" class="btn btn-lg" type="button">Siguiente portada</button>
+    </section>
+
+</div>

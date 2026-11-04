@@ -51,6 +51,15 @@ function apiRoutes({ provider, sessions, library, tempo, hipsterPlaylistId }) {
         res.json(await tempo.many(codes));
     }));
 
+    // Muestra de audio de 30 s (Deezer) para analizar el BPM o jugar con filtros. No llama a Spotify.
+    router.get("/preview", route(async (req, res) => {
+        const upstream = await tempo.preview({ isrc: req.query.isrc, title: req.query.title, artist: req.query.artist });
+        if (!upstream) throw new HttpError("No hay muestra de esta canción.", 404);
+        res.set("Content-Type", upstream.headers.get("content-type") || "audio/mpeg");
+        res.set("Cache-Control", "private, max-age=600");
+        res.send(Buffer.from(await upstream.arrayBuffer()));
+    }));
+
     // ---- Reproductor del cliente: token y controles, si el proveedor los necesita.
 
     router.get("/player/token", route(async (req, res) => {

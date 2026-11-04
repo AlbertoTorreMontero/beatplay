@@ -8,6 +8,16 @@ export const ART = {
     intro: SVG(`<path d="M18 60h6M30 52v16M38 44v32M46 56v8M54 36v48M62 50v20"/><circle cx="90" cy="60" r="20"/><path d="M85 50l14 10-14 10z"/>`),
     // Línea del tiempo con canciones colocadas
     hipster: SVG(`<path d="M10 70h100"/><path d="M22 66v8M46 66v8M74 66v8M98 66v8"/><rect x="34" y="30" width="24" height="24" rx="3"/><rect x="62" y="38" width="24" height="24" rx="3" transform="rotate(8 74 50)"/><path d="M46 54v12"/><text x="14" y="94" fill="currentColor" stroke="none" font-size="10" font-family="monospace">1984</text><text x="88" y="94" fill="currentColor" stroke="none" font-size="10" font-family="monospace">2026</text>`),
+    // Ondas filtradas, una encima de otra
+    layers: SVG(`<path d="M10 40q12-14 24 0t24 0 24 0 24 0 4 0"/><path d="M10 62q8-8 16 0t16 0 16 0 16 0 16 0 16 0" stroke-dasharray="1 0"/><path d="M10 84q4-5 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0"/><path d="M110 30v64"/>`),
+    // Portada en píxeles que se va afinando
+    pixel: SVG(`<rect x="14" y="20" width="56" height="56"/><path d="M14 48h56M42 20v56M28 20v56M56 20v56M14 34h56M14 62h56"/><rect x="62" y="56" width="44" height="44" rx="3"/><circle cx="84" cy="78" r="10"/><circle cx="84" cy="78" r="2"/>`),
+    // Dos cartas con flechas arriba y abajo
+    higher: SVG(`<rect x="12" y="28" width="40" height="56" rx="4"/><rect x="68" y="28" width="40" height="56" rx="4"/><path d="M88 46v20M80 52l8-8 8 8M80 60l8 8 8-8"/><text x="18" y="62" fill="currentColor" stroke="none" font-size="12" font-family="monospace">1999</text>`),
+    // Cuadrícula de cartas, dos levantadas con la misma nota
+    pairs: SVG(`<rect x="14" y="18" width="26" height="36" rx="3"/><rect x="47" y="18" width="26" height="36" rx="3"/><rect x="80" y="18" width="26" height="36" rx="3"/><rect x="14" y="64" width="26" height="36" rx="3"/><rect x="47" y="64" width="26" height="36" rx="3"/><rect x="80" y="64" width="26" height="36" rx="3"/><path d="M62 26v16a4 4 0 1 1-3-4M95 72v16a4 4 0 1 1-3-4"/>`),
+    // Piezas deslizantes con un hueco
+    puzzle: SVG(`<rect x="16" y="16" width="88" height="88" rx="4"/><path d="M45 16v88M75 16v58M16 45h88M16 75h59"/><path d="M80 90h18M92 84l6 6-6 6" /><circle cx="30" cy="30" r="5"/>`),
     // Pulsador gigante
     buzzer: SVG(`<ellipse cx="60" cy="84" rx="38" ry="10"/><path d="M22 84v-8c0-6 17-10 38-10s38 4 38 10v8"/><path d="M34 70c0-16 12-30 26-30s26 14 26 30"/><path d="M60 16v10M38 22l6 8M82 22l-6 8"/>`),
     // Silla con notas cayendo
