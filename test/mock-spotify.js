@@ -38,6 +38,7 @@ const track = (user, n) => ({
     name: `${user} song ${n}`,
     type: "track",
     is_local: false,
+    duration_ms: 150000 + (n * 7919) % 150000,
     artists: [{ name: `${user} artist ${n % 7}` }],
     album: {
         name: `Album ${n % 9}`,

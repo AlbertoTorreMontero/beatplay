@@ -1,0 +1,107 @@
+<div class="game party">
+
+    <header class="game-head">
+        <div class="game-head-title">
+            <span class="eyebrow" data-ref="eyebrow">Fiesta</span>
+            <h1 class="display" data-ref="title">Juego</h1>
+        </div>
+        <button class="btn btn-outline" type="button" data-exit>Salir</button>
+    </header>
+
+
+    <!-- Entrada: nombre y crear o unirse -->
+    <section data-view="lobby" class="rl-view">
+        <p class="lead" data-ref="tagline"></p>
+
+        <div class="rl-entry">
+            <div class="field">
+                <label for="ptName">Tu nombre</label>
+                <input id="ptName" data-ref="name" class="input" maxlength="20" autocomplete="nickname" placeholder="Cómo te verán los demás">
+            </div>
+
+            <div class="rl-entry-options">
+                <div class="rl-option" data-ref="createOption">
+                    <h2>Pon tú la música</h2>
+                    <p class="muted">Creas la sala y la música suena en este dispositivo. Los demás solo necesitan el código.</p>
+                    <button class="btn btn-lg" type="button" data-action="create">Crear sala</button>
+                </div>
+
+                <form class="rl-option" data-ref="joinForm">
+                    <h2>Únete a una</h2>
+                    <label for="ptCode" class="muted">Código de 5 letras</label>
+                    <div class="rl-join">
+                        <input id="ptCode" data-ref="code" class="input rl-code-input" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12">
+                        <button class="btn btn-outline btn-lg" type="submit">Entrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Sala de espera -->
+    <section data-view="room" class="rl-view hidden">
+        <div class="rl-room-top">
+            <div>
+                <span class="eyebrow">Código de la sala</span>
+                <div data-ref="roomCode" class="rl-code display">-----</div>
+                <div class="rl-share">
+                    <button class="btn btn-outline" type="button" data-action="copy-link">Copiar enlace</button>
+                    <button class="btn btn-ghost" type="button" data-action="copy-code">Copiar código</button>
+                </div>
+            </div>
+            <div class="rl-count"><strong data-ref="count" class="display">1</strong><span>jugadores</span></div>
+        </div>
+
+        <div data-ref="options" class="pt-options"></div>
+
+        <div class="rl-room-grid">
+            <div>
+                <h2 class="rl-subtitle">En la sala</h2>
+                <ul data-ref="players" class="rl-players" aria-live="polite"></ul>
+
+                <h2 class="rl-subtitle pt-rules-title">Cómo se juega</h2>
+                <ol data-ref="rules" class="pt-rules"></ol>
+            </div>
+            <div data-ref="hostPanel">
+                <h2 class="rl-subtitle">La música</h2>
+                <p data-ref="playlistStatus" class="rl-status">Elige la playlist de la que saldrán las canciones.</p>
+                <div data-ref="playlists" class="playlists rl-playlists"></div>
+            </div>
+            <div data-ref="guestPanel" class="hidden">
+                <h2 class="rl-subtitle">La música</h2>
+                <p data-ref="guestStatus" class="rl-status">El anfitrión está eligiendo la playlist.</p>
+            </div>
+        </div>
+
+        <div class="start-bar">
+            <p data-ref="hint" class="selection">Esperando jugadores.</p>
+            <button class="btn btn-lg" type="button" data-action="start" data-ref="start" disabled>Empezar</button>
+        </div>
+    </section>
+
+
+    <!-- Partida: cada juego pinta su pantalla en el escenario -->
+    <section data-view="stage" class="pt-stage hidden">
+        <div class="pt-bar">
+            <span data-ref="round" class="eyebrow pt-round"></span>
+            <span data-ref="seconds" class="pt-seconds display" role="timer"></span>
+            <button class="btn btn-ghost pt-skip hidden" type="button" data-action="skip" data-ref="skip">Saltar ›</button>
+        </div>
+        <div class="pt-timer" data-ref="timer"><div data-ref="timerBar"></div></div>
+        <div data-ref="screen" class="pt-screen" aria-live="polite"></div>
+    </section>
+
+
+    <!-- Final -->
+    <section data-view="final" class="pt-stage pt-final hidden">
+        <div data-ref="finalExtra"></div>
+        <span class="eyebrow">Clasificación final</span>
+        <h2 class="rl-reveal">Gana <span data-ref="winner" class="display">—</span></h2>
+        <ol data-ref="finalScores" class="rl-scores pt-scores"></ol>
+        <div class="pt-final-actions">
+            <button class="btn btn-lg" type="button" data-action="again" data-ref="again">Otra partida</button>
+        </div>
+    </section>
+
+</div>

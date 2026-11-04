@@ -11,8 +11,16 @@ import hipster from "../games/hipster/hipster.js";
 import roulette from "../games/roulette/roulette.js";
 import intro from "../games/intro/intro.js";
 import buzzer from "../games/buzzer/buzzer.js";
+import chairs from "../games/chairs/chairs.js";
+import impostor from "../games/impostor/impostor.js";
+import djbattle from "../games/djbattle/djbattle.js";
+import bluff from "../games/bluff/bluff.js";
+import bid from "../games/bid/bid.js";
+import auction from "../games/auction/auction.js";
+import karaoke from "../games/karaoke/karaoke.js";
+import draw from "../games/draw/draw.js";
 
-const GAMES = { snake, intro, hipster, bingo, buzzer, roulette };
+const GAMES = { snake, intro, hipster, bingo, buzzer, roulette, chairs, impostor, djbattle, bluff, bid, auction, karaoke, draw };
 
 const state = {
     game: "snake",
@@ -225,7 +233,7 @@ window.addEventListener("hashchange", () => {
     else if (!$("#loginScreen").classList.contains("hidden")) startGuest(takeInvite());
 });
 
-// Invitado sin cuenta: entra a la sala del código (Music Roulette o Pulsador).
+// Invitado sin cuenta: entra a la sala del código (cualquier juego online).
 async function startGuest(code) {
     code = String(code || "").trim().toUpperCase();
     if (!code) return;

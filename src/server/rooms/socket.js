@@ -1,8 +1,9 @@
-// WebSocket de los juegos online (Music Roulette y Pulsador), montado sobre el mismo servidor HTTP.
+// WebSocket de los juegos online (Music Roulette, Pulsador y los juegos de fiesta), montado sobre el mismo servidor HTTP.
 const { WebSocketServer } = require("ws");
 const { createHub } = require("./hub");
 const { createRoulette } = require("./roulette");
 const { createBuzzer } = require("./buzzer");
+const { createPartyGames } = require("./party");
 
 const HEARTBEAT_MS = 25000;
 
@@ -10,7 +11,8 @@ function attachRooms(server, provider) {
 
     const hub = createHub({
         roulette: createRoulette({ coverHosts: provider.coverHosts }),
-        buzzer: createBuzzer({ coverHosts: provider.coverHosts })
+        buzzer: createBuzzer({ coverHosts: provider.coverHosts }),
+        ...createPartyGames({ coverHosts: provider.coverHosts })
     });
 
     const wss = new WebSocketServer({
