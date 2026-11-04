@@ -1,7 +1,8 @@
 /*
  * PAREJAS SONORAS
  * Memory con el oído: todas las cartas son iguales por fuera. Al tocar una suena un trozo de
- * su canción; encuentra las dos que suenan igual. En fácil, al girarla se ve la portada.
+ * su canción; encuentra las dos de la misma canción: cada una suena a una parte distinta.
+ * En fácil, al girarla se ve la portada.
  *
  * Audio: la muestra de 30 s de Deezer, tocada en el navegador (exacta e instantánea, sin
  * llamadas a Spotify). Si alguna canción no tiene muestra se cambia por otra; si no hay
@@ -79,14 +80,17 @@ async function deal() {
         player.load(chosen.map(item => item.track));
     }
 
-    // Cada pareja suena igual: el mismo trozo de la misma canción.
-    const sounds = chosen.map((item, i) => ({
-        ...item,
-        index: i,
-        offset: item.buffer ? 3 + Math.random() * Math.max(0, item.buffer.duration - CLIP_S - 6) : 30 + Math.random() * 30
-    }));
+    // Cada carta de una pareja suena a un trozo distinto de la misma canción:
+    // una en la primera mitad y la otra en la segunda.
+    const part = (item, half) => {
+        const length = item.buffer ? item.buffer.duration : Math.min((item.track.duration_ms || 180000) / 1000, 150);
+        const start = item.buffer ? 1 : 15;
+        const span = Math.max(0, (length - start) / 2 - CLIP_S - 1);
+        return start + half * (length - start) / 2 + Math.random() * span;
+    };
+    const sounds = chosen.flatMap((item, i) => [0, 1].map(half => ({ ...item, index: i, offset: part(item, half) })));
 
-    cards = shuffle([...sounds, ...sounds]).map(sound => {
+    cards = shuffle(sounds).map(sound => {
         const el = h("button", { type: "button", class: "pairs-card", "aria-label": "Carta" }, sound.track.cover ? h("img", { src: sound.track.cover, alt: "" }) : null);
         return { sound, el, done: false };
     });
@@ -126,7 +130,7 @@ function flip(card) {
     ui.moves.textContent = moves;
     const [a, b] = open;
 
-    if (a.sound === b.sound) {
+    if (a.sound.track === b.sound.track) {
         busy = true;
         setTimeout(() => {
             [a, b].forEach(item => {

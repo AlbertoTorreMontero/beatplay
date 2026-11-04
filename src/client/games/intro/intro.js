@@ -1,9 +1,8 @@
 /*
  * INTRO
  * Dos modos:
- *  - Normal, "Una décima": suena una décima de segundo de un punto cualquiera de la canción.
- *    Si no, 0,5 · 1 · 2 · 4 y 8 s. Sale de la muestra de Deezer (sin llamadas a Spotify).
- *  - Fácil: el principio de la canción, 1, 2, 4, 7, 11 y 16 segundos, por Spotify.
+ *  - Normal, "Una décima": la primera décima de segundo de la canción; si no, 0,5 · 1 · 2 · 4 y 8 s.
+ *  - Fácil: el principio de la canción, 1, 2, 4, 7, 11 y 16 segundos.
  * Cuanto antes la aciertes, más puntos. Si fallas la última oportunidad, se acaba la racha.
  *
  * Llamadas a la API: una al empezar (la lista entera va a la cola del reproductor).
@@ -13,7 +12,6 @@ import { refs, h, toast, pulse, shuffle, store } from "../../lib/ui.js";
 import { tracks as loadTracks } from "../../lib/api.js";
 import { player, positionNow } from "../../lib/player/index.js";
 import { songSearch } from "../../lib/song-search.js";
-import { loadPreview, playClip } from "../../lib/audio.js";
 
 const MODES = {
     normal: [100, 500, 1000, 2000, 4000, 8000],
@@ -38,10 +36,7 @@ let fallback = null;
 let heard = false;   // ¿ha sonado ya esta canción? (si no, resume() reanudaría la anterior)
 let mode = store.get("introMode", "normal");
 let STAGES = MODES[mode] || MODES.normal;
-let clip = null;     // muestra de Deezer de la canción actual (modo normal)
-let clipOffset = 0;
-let stopClip = null;
-let round = 0;
+let round = 0;       // cambia con cada canción: lo que llegue tarde de la anterior se ignora
 
 
 // =====================================================
@@ -122,41 +117,10 @@ function nextSong() {
     ui.reveal.classList.add("hidden");
     ui.board.classList.remove("hidden");
     search.clear();
-    clip = null;
-    renderStage();
-
-    if (mode === "easy") {
-        search.disable(false);
-        ui.play.disabled = false;
-        setStatus("Pulsa para escuchar el primer segundo.");
-        ui.play.focus();
-        return;
-    }
-    loadClip(++round);
-}
-
-// Modo normal: busca la muestra; las canciones sin muestra se saltan.
-async function loadClip(id, tries = 0) {
-    search.disable(true);
-    ui.play.disabled = true;
-    setStatus("Preparando la canción…");
-    const track = deck[index];
-    const buffer = await loadPreview(track);
-    if (!root || id !== round) return;
-    if (!buffer) {
-        if (tries > 8) {
-            setStatus("Estas canciones no tienen muestra. Prueba el modo fácil.");
-            return;
-        }
-        if (++index >= deck.length) index = 0;
-        return loadClip(id, tries + 1);
-    }
-    clip = buffer;
-    clipOffset = 2 + Math.random() * Math.max(0, buffer.duration - 12);
-    if (deck[index + 1]) loadPreview(deck[index + 1]);
     search.disable(false);
-    ui.play.disabled = false;
-    setStatus("Pulsa para escuchar una décima de segundo.");
+    round++;
+    renderStage();
+    setStatus(mode === "normal" ? "Pulsa para escuchar una décima de segundo." : "Pulsa para escuchar el primer segundo.");
     ui.play.focus();
 }
 
@@ -173,19 +137,7 @@ async function playFragment() {
     ui.play.classList.add("playing");
     setStatus("Escuchando…");
 
-    if (mode === "normal") {
-        if (!clip) return stopWatching();
-        stopClip = playClip(clip, {
-            offset: clipOffset,
-            duration: stopAt / 1000,
-            onEnd: () => {
-                ui.play?.classList.remove("playing");
-                setStatus("¿La tienes? Escríbela abajo, vuelve a escucharla o salta.");
-            }
-        });
-        return;
-    }
-
+    const id = round;
     try {
         await player.playAt(index);
     } catch (error) {
@@ -195,6 +147,7 @@ async function playFragment() {
         return;
     }
 
+    if (id !== round) return player.pause();
     heard = true;
     const track = deck[index];
     const started = performance.now();
@@ -207,12 +160,10 @@ async function playFragment() {
             player.pause();
             setStatus("¿La tienes? Escríbela abajo, vuelve a escucharla o salta.");
         }
-    }, 40);
+    }, stopAt < 1000 ? 10 : 40);
 }
 
 function stopWatching() {
-    stopClip?.();
-    stopClip = null;
     clearInterval(watcher);
     clearTimeout(fallback);
     watcher = null;
@@ -278,7 +229,10 @@ function finishSong(correct) {
     ui.next.focus();
 
     // Ya resuelta, suena tranquila desde donde iba (sin llamadas a la API).
-    (heard ? player.resume() : player.playAt(index)).catch(() => {});
+    const id = round;
+    (heard ? player.resume() : player.playAt(index))
+        .then(() => { if (id !== round) player.pause(); })
+        .catch(() => {});
 
     if (!correct) {
         score = 0;

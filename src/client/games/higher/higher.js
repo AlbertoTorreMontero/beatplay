@@ -2,7 +2,8 @@
  * MÁS O MENOS
  * A la izquierda, una canción con su dato a la vista. A la derecha suena otra: ¿su dato es
  * mayor o menor? Si aciertas, la de la derecha pasa a la izquierda y llega otra. Un fallo y se
- * acaba la racha. Cada 5 aciertos cambia lo que se compara: año, duración y BPM (este último
+ * acaba la racha. Cada ronda se compara un dato al azar, nunca el mismo dos veces seguidas:
+ * año, duración o BPM (este último
  * cuando ya se conoce el tempo de suficientes canciones).
  *
  * Llamadas a la API: una para leer la playlist (con año) y una por canción que suena.
@@ -13,7 +14,6 @@ import { tracks as loadTracks } from "../../lib/api.js";
 import { player } from "../../lib/player/index.js";
 import { tempoFor } from "../../lib/audio.js";
 
-const CHANGE_EVERY = 5;
 const MIN_BPM_SONGS = 8;
 
 const clock = ms => `${Math.floor(ms / 60000)}:${String(Math.round(ms / 1000) % 60).padStart(2, "0")}`;
@@ -73,22 +73,24 @@ function pick(except) {
     return options[Math.floor(Math.random() * options.length)];
 }
 
-// Cada 5 aciertos, otro dato. BPM solo si ya se sabe el de bastantes canciones.
-function rotate() {
-    const available = ["year", "duration", ...(bpms.size >= MIN_BPM_SONGS ? ["bpm"] : [])];
-    attribute = available[(available.indexOf(attribute) + 1) % available.length];
+// Cada ronda, un dato al azar distinto del anterior. BPM solo si ya se sabe el de bastantes canciones.
+function shuffleAttribute() {
+    const available = ["year", "duration", ...(bpms.size >= MIN_BPM_SONGS ? ["bpm"] : [])]
+        .filter(name => name !== attribute && ATTRIBUTES[name].value(left) != null);
+    if (available.length) attribute = available[Math.floor(Math.random() * available.length)];
     if (!valid(left)) left = pick(null);
 }
 
 function newRound() {
     locked = false;
+    shuffleAttribute();
     right = pick(left);
     const info = ATTRIBUTES[attribute];
     ui.question.textContent = info.question;
     ui.up.textContent = info.up;
     ui.down.textContent = info.down;
     ui.up.disabled = ui.down.disabled = false;
-    ui.status.textContent = streak && streak % CHANGE_EVERY === 0 ? `¡Ahora se compara ${info.label.toLowerCase()}!` : "";
+    ui.status.textContent = "";
     ui.arena.replaceChildren(card(left, true), card(right, false));
     player.playAt(tracks.indexOf(right)).catch(() => {});
 }
@@ -129,7 +131,6 @@ function answer(direction) {
     setTimeout(() => {
         if (!root) return;
         left = right;
-        if (streak % CHANGE_EVERY === 0) rotate();
         newRound();
     }, 1100);
 }

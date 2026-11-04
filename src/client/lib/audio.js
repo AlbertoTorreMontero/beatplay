@@ -45,14 +45,15 @@ export function loadPreview(track) {
 /**
  * Toca un trozo de la muestra. Devuelve una función para pararlo.
  * filter: { type: "lowpass" | "highpass" | "bandpass", frequency, Q } opcional.
+ * build: (ctx, source) => nodo de salida, para montar un grafo propio (Capas).
  */
-export function playClip(buffer, { offset = 0, duration = buffer.duration, filter = null, volume = 0.9, onEnd } = {}) {
+export function playClip(buffer, { offset = 0, duration = buffer.duration, filter = null, build = null, volume = 0.9, onEnd } = {}) {
     const ctx = audioContext();
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     source.buffer = buffer;
 
-    let node = source;
+    let node = build ? build(ctx, source) : source;
     if (filter) {
         const biquad = ctx.createBiquadFilter();
         Object.assign(biquad, { type: filter.type });
