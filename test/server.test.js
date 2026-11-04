@@ -184,7 +184,7 @@ describe("sesiones y OAuth", () => {
         const attacker = browser(server.base);
         const forged = await attacker("/callback?code=code-mallory&state=falso");
         assert.equal(forged.headers.get("location"), "/app?auth=error");
-        assert.equal(attacker.jar.beatplay_sid, undefined);
+        assert.equal(attacker.jar.beatplay_session, undefined);
         assert.equal((await browser(server.base)("/callback?code=x&state=y")).headers.get("location"), "/app?auth=error");
     });
 
@@ -237,17 +237,12 @@ describe("app propia de cada usuario (Client ID + PKCE)", () => {
         assert.equal(res.headers.get("location"), "/app?auth=setup");
     });
 
-    it("entra con PKCE, usa su app al renovar y recuerda su Client ID para otro dispositivo", async () => {
+    it("entra con PKCE, usa su app y le devuelve su Client ID para recordarlo", async () => {
         const gina = browser(server.base);
         assert.equal((await gina.login("gina", OWN_ID)).headers.get("location"), "/app");
         assert.match((await (await gina("/api/player/token")).json()).accessToken, /-own$/);
         assert.equal((await gina("/api/playlists")).status, 200);
-
-        for (const account of ["gina", "GINA@mail.com"]) {
-            const found = await fetch(`${server.base}/auth/client-id?account=${encodeURIComponent(account)}`);
-            assert.equal((await found.json()).clientId, OWN_ID);
-        }
-        assert.equal((await fetch(`${server.base}/auth/client-id?account=nadie`)).status, 404);
+        assert.equal((await (await gina("/api/me")).json()).clientId, OWN_ID);
     });
 
     it("una cuenta no autorizada en la app compartida va a la guía", async () => {
@@ -281,6 +276,24 @@ describe("app propia de cada usuario (Client ID + PKCE)", () => {
 });
 
 describe("renovación de token", () => {
+
+    it("la sesión sobrevive a un reinicio del servidor", async () => {
+        const first = await startServer();
+        const dana = browser(first.base);
+        await dana.login("dana");
+        first.stop();
+        const second = await startServer();
+        try {
+            const cookie = `beatplay_session=${dana.jar.beatplay_session}`;
+            const res = await fetch(`${second.base}/api/me`, { headers: { cookie } });
+            assert.equal(res.status, 200);
+            assert.equal((await res.json()).id, "dana");
+            const forged = await fetch(`${second.base}/api/me`, { headers: { cookie: "beatplay_session=abc" } });
+            assert.equal(forged.status, 401);
+        } finally {
+            second.stop();
+        }
+    });
 
     it("renueva el token caducado sin que el usuario lo note", async () => {
 
@@ -337,13 +350,9 @@ describe("canciones y Hipster", () => {
         assert.equal(body.uris.length, 30);
         assert.equal(body.offset.position, 3);
 
-        // Móvil (Spotify Connect): lista de dispositivos y control remoto.
-        const devices = await (await user("/api/player/devices")).json();
-        assert.equal(devices[0].type, "Smartphone");
-        for (const action of ["pause", "resume", "seek"]) {
-            const res = await user(`/api/player/${action}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "phone-1", positionMs: 1000 }) });
-            assert.equal(res.status, 204, action);
-        }
+        // Sin Spotify Connect: solo se reproduce en el navegador.
+        assert.equal((await user("/api/player/devices")).status, 404);
+        assert.equal((await user("/api/player/pause", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "d" }) })).status, 404);
 
         // Activar el dispositivo al conectar: una llamada.
         const transfer = await user("/api/player/transfer", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceId: "d" }) });

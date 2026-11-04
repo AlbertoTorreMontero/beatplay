@@ -17,7 +17,7 @@
 const crypto = require("crypto");
 const { WebSocket } = require("ws");
 
-const RECONNECT_GRACE_MS = 30000;
+const RECONNECT_GRACE_MS = 120000; // bloquear el móvil un rato no saca a nadie de la sala
 
 // Sin 0/O/1/I: el código se dicta y se escribe desde el móvil.
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

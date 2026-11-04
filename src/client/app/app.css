@@ -49,46 +49,38 @@
 }
 
 /* Guía de configuración: tres pasos, uno detrás de otro. */
-.setup-steps { display: grid; gap: var(--space-5); list-style: none; counter-reset: step; }
+/* Asistente de conexión: un paso por pantalla */
+.wizard { max-width: 640px; width: 100%; justify-self: center; }
+.wizard-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; list-style: none; }
+.wizard-progress li { height: 4px; border-radius: 2px; background: var(--line-strong); transition: background var(--fast); }
+.wizard-progress li.done { background: var(--accent); }
+.wizard-step { display: none; gap: var(--space-4); }
+.wizard-step.current { display: grid; animation: screen-in var(--slow) var(--ease); }
+.wizard-step h2 { font-size: clamp(2.2rem, 1.8rem + 1.5vw, 3rem); font-weight: 400; line-height: 0.95; }
+.wizard-step .lead { color: var(--bone-dim); }
+.wizard-step em, .wizard-step strong { color: var(--bone); font-style: normal; font-weight: 500; }
+.wizard-step > .btn-lg { justify-self: start; }
+.wizard-step > .link { justify-self: start; }
+.wizard-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.btn-sm { min-height: 34px; padding: 4px 12px; font-size: var(--text-xs); }
+.access-warn { color: var(--accent-text); }
+.access-host > .link { justify-self: start; }
 
-.setup-steps > li {
-    position: relative;
-    display: grid;
-    justify-items: start;
-    gap: var(--space-2);
-    padding-left: 3rem;
-    counter-increment: step;
-}
-
-.setup-steps > li::before {
-    content: counter(step);
-    position: absolute;
-    left: 0;
-    top: -0.2rem;
-    color: var(--accent-text);
-    font-family: var(--display);
-    font-size: 2.2rem;
-    line-height: 1;
-}
-
-.setup-steps strong { font-weight: 500; }
-.setup-steps span { color: var(--bone-dim); }
-.setup-steps em { color: var(--bone); font-style: normal; font-weight: 500; }
-.setup-steps .btn { margin-top: var(--space-1); }
-
-.copy-list { display: grid; gap: var(--space-2); width: 100%; margin: var(--space-1) 0; }
+.copy-list { display: grid; gap: var(--space-2); width: 100%; }
 .copy-list > div {
     display: grid;
-    grid-template-columns: 130px 1fr;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
+    gap: var(--space-1);
+    padding: var(--space-3);
     border: 1px solid var(--line);
     border-radius: var(--radius);
+    background: var(--ink-raised);
 }
+.copy-list > .copy-key { border-color: var(--accent); }
 .copy-list dt { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.copy-list dt span { color: var(--accent-text); }
 .copy-list dd { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; }
 .copy-list code { overflow: hidden; font-family: var(--mono); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.copy-list .btn.copied { background: var(--accent); border-color: var(--accent); color: var(--ink); }
 
 .setup-form { display: flex; gap: var(--space-2); width: 100%; }
 .setup-form .input { flex: 1; font-family: var(--mono); }
@@ -98,8 +90,8 @@
     .access { grid-template-columns: 1fr; }
     .access-card { padding: var(--space-5); }
     .access-card + .access-card { border-left: 0; border-top: 1px solid var(--line); }
-    .copy-list > div { grid-template-columns: 1fr; gap: var(--space-1); }
-    .setup-steps > li { padding-left: 2.25rem; }
+    .wizard-actions { flex-direction: column-reverse; }
+    .wizard-actions .btn, .wizard-step > .btn-lg { justify-self: stretch; }
 }
 
 

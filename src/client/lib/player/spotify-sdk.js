@@ -13,7 +13,7 @@
 import { api } from "../api.js";
 
 const SDK_URL = "https://sdk.scdn.co/spotify-player.js";
-export const PLAYER_NAME = "BeatPlay"; // así se llama este dispositivo en Spotify Connect
+const PLAYER_NAME = "BeatPlay"; // así aparece este navegador entre los dispositivos de Spotify
 const READY_TIMEOUT = 15000;
 const TOKEN_MARGIN_MS = 5 * 60 * 1000; // se reutiliza el token mientras le queden 5 min
 const MIN_GAP_MS = 1000;
@@ -180,12 +180,6 @@ export function createPlayer({ emit, warn, readyTimeout = READY_TIMEOUT }) {
 
     return {
         init,
-
-        // Al pasar a la app de Spotify: este dispositivo deja de existir en Spotify Connect.
-        disconnect() {
-            wanted = null;
-            sdk?.disconnect();
-        },
 
         load(tracks) {
             list = tracks;

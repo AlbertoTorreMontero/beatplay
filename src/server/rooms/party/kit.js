@@ -160,7 +160,7 @@ function createPartyGame(spec, { coverHosts = [] } = {}) {
             // ---- Audio (solo lo ejecuta el navegador del anfitrión)
 
             music(action, data = {}) {
-                // Pausar lo ya pausado no hace nada… salvo gastar una llamada a la API en Spotify Connect.
+                // Pausar lo ya pausado no hace nada… salvo gastar una llamada a la API.
                 if (action === "pause" && (!room.music || room.music.action === "pause")) return;
                 room.music = { action, ...data };
                 ctx.send(api.host()?.ws, "music", room.music);

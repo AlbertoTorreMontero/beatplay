@@ -3,7 +3,6 @@ const path = require("path");
 const express = require("express");
 const { createSessions } = require("./session");
 const { createLibrary } = require("./library");
-const { createAccounts } = require("./accounts");
 const { createTempo } = require("./tempo");
 const { HttpError, route, rateLimit } = require("./utils");
 const { authRoutes } = require("./routes/auth");
@@ -12,9 +11,8 @@ const { apiRoutes } = require("./routes/api");
 function createApp({ provider, clientDir, dataDir, hipsterPlaylistId }) {
 
     const app = express();
-    const sessions = createSessions(provider);
+    const sessions = createSessions(provider, { dataDir });
     const library = createLibrary(provider, { dataDir });
-    const accounts = createAccounts(dataDir);
     const tempo = createTempo();
     const canonical = new URL(provider.redirectUri);
 
@@ -44,7 +42,7 @@ function createApp({ provider, clientDir, dataDir, hipsterPlaylistId }) {
     app.get("/", (req, res) => res.sendFile(path.join(clientDir, "landing", "index.html")));
     app.get("/app", (req, res) => res.sendFile(path.join(clientDir, "app", "index.html")));
 
-    app.use(authRoutes({ provider, sessions, accounts }));
+    app.use(authRoutes({ provider, sessions }));
 
     // Invitados de Music Roulette: eligen playlist pegando su enlace público, sin iniciar sesión.
     app.post("/api/public/playlist", rateLimit({ max: 10, windowMs: 60000 }), route(async (req, res) => {

@@ -1,151 +1,97 @@
 /*
- * Reproductor de la app, independiente del servicio de música.
+ * Reproductor de la app: la música suena siempre en esta web, con el Web Playback SDK de
+ * Spotify (hace falta Premium). Los juegos solo usan este módulo.
  *
- * Los juegos solo usan este módulo. El servidor dice qué reproductor toca
- * (provider.playback en /api/me) y aquí se carga el adaptador que corresponda.
- * Para otro servicio: crea player/<nombre>.js con la misma forma y regístralo.
+ *   player.load(tracks)   lista del juego, en orden (sin llamadas)
+ *   player.playAt(i)      la canción i de esa lista (una llamada a la API)
+ *   pause(), resume(), toggle(), seek(ms)   las hace el SDK, sin llamadas
+ *   player.onState(fn)    avisa de lo que suena: { ref, position, duration, paused, at }
  *
- * Un adaptador expone:
- *   init()                     prepara el reproductor (lanza si no puede)
- *   load(tracks)               carga la lista del juego, en orden (sin llamadas)
- *   playAt(index)              reproduce la canción n de esa lista (la exacta)
- *   pause(), resume(), toggle(), seek(ms)
- * y avisa de lo que suena con emit({ ref, position, duration, paused }).
- *
- * Spotify: siempre se intenta que suene en el propio navegador (Web Playback SDK), también en
- * el móvil: así no hace falta la app y pausar o reanudar no gasta llamadas a la API.
- * Si el navegador no puede (sin DRM, o un iPhone que no deja sonar), se pasa solo a la app de
- * Spotify del dispositivo (Spotify Connect). En el móvil se comprueba con la primera canción:
- * si no empieza a sonar en unos segundos, se cambia a la app y se vuelve a pedir.
+ * En el móvil el SDK de Spotify no está soportado: se intenta igual y, si la primera canción
+ * no empieza a sonar, se avisa con PLAYER_STATUS_EVENT para que la música se ponga desde un
+ * ordenador (los invitados juegan desde el móvil sin problema).
  */
+import { createPlayer } from "./spotify-sdk.js";
 
-import { toast } from "../ui.js";
-
-const ADAPTERS = {
-    "spotify-sdk": () => import("./spotify-sdk.js"),
-    "spotify-connect": () => import("./spotify-connect.js"),
-    preview: () => import("./preview.js")
-};
-
-let adapter = null;
-let queue = []; // lista cargada por el juego, aunque el reproductor aún no esté listo
-let ready = null;
-let mode = null; // adaptador en uso
-
-const MOBILE_READY_MS = 9000;   // en el móvil no se espera tanto al reproductor del navegador
-const MOBILE_CHECK_MS = 8000;   // tiempo para que la primera canción empiece a sonar
-export const PLAYER_MODE_EVENT = "beatplay:player-mode";
+const MOBILE_READY_MS = 9000;
+const MOBILE_CHECK_MS = 8000;
+export const PLAYER_STATUS_EVENT = "beatplay:player-status";
+export const MOBILE_UNSUPPORTED = "En este móvil Spotify no deja sonar la música en la web. Pon la música desde un ordenador: los demás pueden jugar desde el móvil.";
 
 export const isMobile = () => Boolean(navigator.userAgentData?.mobile) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-const listeners = new Set();
 
+const listeners = new Set();
+let adapter = null;
+let ready = null;
+let queue = [];
+let checked = false;
+
+const announce = (ok, message) => window.dispatchEvent(new CustomEvent(PLAYER_STATUS_EVENT, { detail: { ok, message } }));
 const emit = state => {
     const stamped = { ...state, at: performance.now() };
     listeners.forEach(listener => listener(stamped));
 };
 
-async function start(name, options = {}) {
-    const module = await ADAPTERS[name]();
-    const candidate = module.createPlayer({ emit, warn: message => toast(message, { error: true }), ...options });
-    await candidate.init();
-    candidate.load(queue);
-    adapter?.disconnect?.();
-    adapter = candidate;
-    mode = name;
-    window.dispatchEvent(new CustomEvent(PLAYER_MODE_EVENT, { detail: name }));
-    return name;
-}
-
-// ---- Comprobación en el móvil: ¿suena de verdad en el navegador?
-
-let verified = false;
-let switching = null;
-
-function verify(index) {
-    if (verified || mode !== "spotify-sdk" || !isMobile()) return;
-    const ref = queue[index]?.ref;
-
-    const stop = () => {
-        clearTimeout(timer);
-        listeners.delete(check);
-    };
-    const check = state => {
-        if (state.ref === ref && !state.paused && state.position > 0) {
-            verified = true;
-            stop();
-        }
-    };
-    const timer = setTimeout(() => {
-        stop();
-        if (!verified && mode === "spotify-sdk") switchToApp(index);
-    }, MOBILE_CHECK_MS);
-    listeners.add(check);
-}
-
-// Pasa a la app de Spotify y vuelve a pedir la canción que no sonó.
-function switchToApp(index) {
-    if (switching) return switching;
-    toast("Tu navegador no deja sonar la música aquí: pasamos a la app de Spotify. Ábrela si no lo está.");
-    switching = start("spotify-connect")
-        .then(() => adapter.playAt(index))
-        .catch(error => toast(error.message, { error: true }))
-        .finally(() => { switching = null; });
-    return switching;
-}
-
-// Lo llama la app al arrancar con el tipo de reproductor del proveedor. Devuelve el que se usa.
-export function setupPlayer(kind) {
+// Lo llama la app al arrancar, una vez con sesión.
+export function setupPlayer({ warn }) {
     ready = (async () => {
-        if (!ADAPTERS[kind]) throw new Error("Este servicio de música no permite reproducir desde la web.");
-        if (kind !== "spotify-sdk") return start(kind);
-
+        const candidate = createPlayer({ emit, warn, ...(isMobile() ? { readyTimeout: MOBILE_READY_MS } : {}) });
         try {
-            return await start("spotify-sdk", isMobile() ? { readyTimeout: MOBILE_READY_MS } : {});
+            await candidate.init();
         } catch (error) {
-            console.warn("Reproductor del navegador no disponible, se usa la app de Spotify:", error.message);
-            return start("spotify-connect");
+            throw new Error(isMobile() ? MOBILE_UNSUPPORTED : error.message);
         }
+        candidate.load(queue);
+        adapter = candidate;
     })();
-
-    ready.catch(() => {});
+    ready.then(() => announce(true), error => announce(false, error.message));
     return ready;
 }
 
-export const playerMode = () => mode;
+// En el móvil, la primera canción dice si de verdad suena.
+function checkMobile(index) {
+    if (checked || !isMobile()) return;
+    checked = true;
+    const ref = queue[index]?.ref;
+    let sounded = false;
+    const check = state => {
+        if (state.ref === ref && !state.paused && state.position > 0) sounded = true;
+    };
+    listeners.add(check);
+    setTimeout(() => {
+        listeners.delete(check);
+        if (!sounded) announce(false, MOBILE_UNSUPPORTED);
+    }, MOBILE_CHECK_MS);
+}
 
 async function withPlayer() {
-    if (!ready) throw new Error("El reproductor no está configurado.");
+    if (!ready) throw new Error("El reproductor no está listo.");
     await ready;
     return adapter;
 }
 
 export const player = {
     ready: () => withPlayer().then(() => true),
-    // Los juegos cargan su lista una vez y piden canciones por posición.
     load(tracks) {
         queue = tracks;
         adapter?.load(tracks);
     },
     playAt: async index => {
-        await withPlayer();
-        if (switching) await switching;
-        const playing = adapter.playAt(index);
-        verify(index);
+        const playing = (await withPlayer()).playAt(index);
+        checkMobile(index);
         return playing;
     },
     resume: async () => (await withPlayer()).resume(),
     toggle: async () => (await withPlayer()).toggle(),
     seek: async ms => (await withPlayer()).seek(ms),
-
     // Pausar nunca debe romper una salida de juego.
     pause: async () => {
         try {
-            if (adapter) await adapter.pause();
+            await adapter?.pause();
         } catch (error) {
             console.warn("Pausa:", error.message);
         }
     },
-
     onState(listener) {
         listeners.add(listener);
         return () => listeners.delete(listener);

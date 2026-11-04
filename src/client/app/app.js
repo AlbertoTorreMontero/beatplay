@@ -1,10 +1,10 @@
 // Controlador de la app: sesión, menú y ciclo de vida de los juegos.
-import { $, $$, toast, showScreen } from "../lib/ui.js";
+import { $, $$, toast, showScreen, store } from "../lib/ui.js";
 import { getMe, logout, SESSION_EXPIRED } from "../lib/api.js";
-import { setupPlayer, player, isMobile, PLAYER_MODE_EVENT } from "../lib/player/index.js";
+import { setupPlayer, player, isMobile, PLAYER_STATUS_EVENT } from "../lib/player/index.js";
 import { paintArt } from "./art.js";
 import { playlistPicker } from "../lib/playlists.js";
-import { initLogin } from "./login.js";
+import { initLogin, CLIENT_ID_KEY } from "./login.js";
 
 import snake from "../games/snake/snake.js";
 import bingo from "../games/bingo/bingo.js";
@@ -293,22 +293,16 @@ window.addEventListener(SESSION_EXPIRED, () => {
     }
 });
 
-function showPlayerMode(mode) {
-    if (mode !== "spotify-connect") {
-        setPlayerStatus(isMobile() ? "Suena en este móvil" : "Reproductor listo", true);
-        $("#playerStatus").title = "";
-        return;
-    }
-    setPlayerStatus("Suena en tu app de Spotify", true);
-    $("#playerStatus").title = "La música sonará en la app de Spotify de este dispositivo. Ábrela antes de jugar.";
-    // Se avisa una vez: sin la app de Spotify abierta no sonará nada.
-    try {
-        if (!sessionStorage.getItem("beatplayConnectHint")) {
-            sessionStorage.setItem("beatplayConnectHint", "1");
-            toast("La música suena en la app de Spotify: ábrela un momento antes de jugar.");
-        }
-    } catch { /* sin almacenamiento: no pasa nada */ }
-}
+// Estado del reproductor. Si en este móvil no suena, se avisa una vez y bien visible.
+let warnedMobile = false;
+window.addEventListener(PLAYER_STATUS_EVENT, ({ detail }) => {
+    const status = $("#playerStatus");
+    status.title = detail.message || "";
+    if (detail.ok) return setPlayerStatus(isMobile() ? "Suena en este móvil" : "Reproductor listo", true);
+    setPlayerStatus(isMobile() ? "No suena en este móvil" : "Sin reproductor", false);
+    if (!isMobile() || !warnedMobile) toast(detail.message, { error: true, duration: 9000 });
+    warnedMobile = isMobile();
+});
 
 async function boot() {
     storeInvite();
@@ -316,34 +310,27 @@ async function boot() {
     const config = await fetch("/auth/config").then(response => response.json()).catch(() => ({ name: "Spotify", redirectUri: "" }));
     showProviderName(config.name);
 
+    // La pantalla de entrada se prepara siempre: también hace falta si la sesión caduca jugando.
+    initLogin({ config, invite: peekInvite(), onGuest: code => {
+        const saved = takeInvite();
+        startGuest(code || saved);
+    } });
+
     let me;
     try {
         me = await getMe();
     } catch {
-        initLogin({ config, invite: peekInvite(), onGuest: code => {
-            const saved = takeInvite();
-            startGuest(code || saved);
-        } });
         showScreen("loginScreen");
         return;
     }
 
     state.loggedIn = true;
+    if (me.clientId) store.set(CLIENT_ID_KEY, me.clientId); // la próxima vez, un toque
     $("#userName").textContent = me.name;
     initMenu();
     showScreen("menuScreen");
 
-    // Si a mitad de partida el reproductor pasa a la app de Spotify, el estado se actualiza solo.
-    window.addEventListener(PLAYER_MODE_EVENT, event => showPlayerMode(event.detail));
-
-    setupPlayer(me.provider.playback)
-        .then(showPlayerMode)
-        .catch(error => {
-            console.error("Reproductor:", error);
-            setPlayerStatus("Sin reproductor", false);
-            $("#playerStatus").title = error.message;
-            toast(error.message, { error: true });
-        });
+    setupPlayer({ warn: message => toast(message, { error: true }) }).catch(error => console.error("Reproductor:", error));
 
     await openInvite();
 }

@@ -31,7 +31,7 @@ function createLibrary(provider, { dataDir }) {
         return promise;
     }
 
-    const userKey = (req, key) => `${req.session.id}:${key}`;
+    const userKey = (req, key) => `${req.session.profile.id}:${key}`;
 
     // refresh: el usuario pulsó "Volver a cargar" (p. ej. acaba de crear una playlist).
     function playlists(req, { refresh = false } = {}) {

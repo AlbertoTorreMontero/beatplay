@@ -16,9 +16,12 @@ function apiRoutes({ provider, sessions, library, tempo, hipsterPlaylistId }) {
 
     router.get("/me", route(async (req, res) => {
         const { id, name } = req.session.profile;
+        const { ownApp, clientId } = req.session.tokens;
         res.json({
             id,
             name,
+            // El Client ID no es secreto: el navegador lo guarda para entrar la próxima vez con un toque.
+            clientId: ownApp ? clientId : null,
             provider: { id: provider.id, name: provider.name, playback: provider.playback }
         });
     }));
@@ -67,12 +70,6 @@ function apiRoutes({ provider, sessions, library, tempo, hipsterPlaylistId }) {
             accessToken: req.token,
             expiresIn: Math.max(0, Math.floor((req.session.tokens.expiresAt - Date.now()) / 1000))
         });
-    }));
-
-    // Spotify Connect: dispositivos donde puede sonar (la app de Spotify del móvil, por ejemplo).
-    router.get("/player/devices", route(async (req, res) => {
-        if (!provider.listDevices) throw new HttpError("Este servicio no admite elegir dispositivo.", 404);
-        res.json(await provider.listDevices(req.token));
     }));
 
     router.put("/player/:action", route(async (req, res) => {

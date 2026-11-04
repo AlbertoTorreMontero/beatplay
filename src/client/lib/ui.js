@@ -19,7 +19,7 @@ export function h(tag, props = {}, ...children) {
     return node;
 }
 
-export function toast(message, { error = false } = {}) {
+export function toast(message, { error = false, duration = 4500 } = {}) {
     let node = $(".toast");
 
     if (!node) {
@@ -32,7 +32,7 @@ export function toast(message, { error = false } = {}) {
     node.classList.add("show");
 
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => node.classList.remove("show"), 4500);
+    toast.timer = setTimeout(() => node.classList.remove("show"), duration);
 }
 
 // Cambia de pantalla y mueve el foco: sin eso, teclado y lector se quedan en un botón que ya no se ve.

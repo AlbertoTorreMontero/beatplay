@@ -1,127 +1,159 @@
-// Pantalla de login: entrar, configurar la app propia de Spotify la primera vez, otro dispositivo e invitados.
+// Pantalla de entrada: invitados con código, o "Pongo la música" con Spotify.
+// La primera vez, un asistente de 4 pasos conecta la app propia de Spotify; después el Client ID
+// queda guardado en este navegador y se entra con un toque.
 import { $, $$, refs, toast, store } from "../lib/ui.js";
+import { isMobile } from "../lib/player/index.js";
 
-const CLIENT_ID_KEY = "beatplayClientId";
+export const CLIENT_ID_KEY = "beatplayClientId";
 const CLIENT_ID_FORMAT = /^[0-9a-f]{32}$/i;
+const STEPS = 4;
 
-const NOTICES = {
-    denied: "Has cancelado el acceso. Sin él no podemos leer tus playlists.",
-    error: "No se pudo iniciar sesión. Revisa tu Client ID y vuelve a intentarlo.",
-    notallowed: "Tu cuenta no está en la lista de amigos de BeatPlay. Conecta tu propia app de Spotify: se hace una vez.",
-    setup: "Para entrar necesitas conectar tu propia app de Spotify. Se hace una vez."
+// Avisos al volver de Spotify (?auth=…): qué ha pasado y a qué pantalla se vuelve.
+const RETURNS = {
+    denied: { text: "Has cancelado el permiso en Spotify. Sin él no podemos leer tus playlists. Vuelve a intentarlo cuando quieras.", view: "start" },
+    error: { text: "Spotify no aceptó la conexión. Casi siempre es la Redirect URI: comprueba que está copiada entera en tu app y que le diste a Save.", view: "setup", step: 3 },
+    notallowed: { text: "Tu cuenta no está autorizada en la app de esta web. Conecta la tuya: son 3 minutos.", view: "setup", step: 1 },
+    setup: { text: "", view: "setup", step: 1 }
 };
 
 let ui = {};
+let config = {};
 
 const loginWith = clientId => { location.href = clientId ? `/login?clientId=${clientId}` : "/login"; };
-
-function show(view) {
-    for (const section of $$("[data-login]")) section.classList.toggle("hidden", section.dataset.login !== view);
-    // En la pantalla de inicio no se enfoca nada: en el móvil abriría el teclado sin pedirlo.
-    if (view !== "start") $(`[data-login="${view}"] input, [data-login="${view}"] button`)?.focus({ preventScroll: true });
-}
+const cleanId = value => value.replace(/\s+/g, "").toLowerCase();
 
 function notice(text) {
     ui.loginNotice.hidden = !text;
     ui.loginNotice.textContent = text || "";
 }
 
-async function copy(text) {
+function show(view, step = 1) {
+    for (const section of $$("[data-login]")) section.classList.toggle("hidden", section.dataset.login !== view);
+    ui.loginTitle.hidden = view !== "start";
+    if (view === "setup") goTo(step);
+}
+
+function goTo(step) {
+    for (const section of $$("[data-step]")) section.classList.toggle("current", Number(section.dataset.step) === step);
+    [...ui.progress.children].forEach((bar, i) => bar.classList.toggle("done", i < step));
+    window.scrollTo({ top: 0 });
+    if (step === 4 && !isMobile()) ui.clientId.focus({ preventScroll: true });
+}
+
+async function copy(text, button) {
     try {
         await navigator.clipboard.writeText(text);
-        toast("Copiado.");
+        button.classList.add("copied");
+        const label = button.textContent;
+        button.textContent = "Copiado ✓";
+        setTimeout(() => {
+            button.classList.remove("copied");
+            button.textContent = label;
+        }, 1600);
     } catch {
-        toast(text);
+        toast(`Cópialo a mano: ${text}`);
     }
+}
+
+function checkClientId() {
+    const value = cleanId(ui.clientId.value);
+    const ok = CLIENT_ID_FORMAT.test(value);
+    ui.connectButton.disabled = !ok;
+    ui.clientIdHint.textContent = !value
+        ? "Si no lo encuentras: en developer.spotify.com/dashboard, entra en tu app BeatPlay."
+        : ok ? "Perfecto, ese es." : `Eso no parece un Client ID: tiene que tener 32 letras y números (llevas ${value.length}).`;
+    return ok ? value : null;
 }
 
 /**
  * Prepara la pantalla. `onGuest(código)` entra a una sala sin cuenta.
- * `invite` es el código de sala de un enlace de invitación, si lo hay (queda ya escrito).
+ * `invite` es el código de un enlace de invitación, si lo hay (queda ya escrito).
  */
-export function initLogin({ config, onGuest, invite }) {
+export function initLogin({ config: providerConfig, onGuest, invite }) {
+    config = providerConfig;
     const root = $("#loginScreen");
     ui = refs(root);
     ui.loginNotice = $("#loginNotice");
+    ui.progress = $(".wizard-progress", root);
 
     ui.redirectUri.textContent = config.redirectUri;
     if (config.dashboardUrl) ui.dashboard.href = config.dashboardUrl;
     $("[data-action=shared]", root).hidden = !config.sharedApp;
-    ui.clientId.value = store.get(CLIENT_ID_KEY, "");
+    ui.mobileNote.hidden = !isMobile();
 
-    // Con un enlace de invitación, el código ya está puesto: un toque y a la sala.
+    const saved = store.get(CLIENT_ID_KEY);
+    if (saved) {
+        ui.loginNote.textContent = "Ya conectaste tu Spotify en este navegador: entras con un toque.";
+        ui.resetLink.hidden = false;
+        ui.clientId.value = saved;
+    }
+    checkClientId();
+
     if (invite) {
         ui.guestCode.value = invite;
         ui.guestTitle.textContent = `Sala ${invite}`;
-        ui.guestText.textContent = "Te han invitado a esta sala. Entra sin cuenta: no necesitas Spotify.";
+        ui.guestText.textContent = "Te han invitado a esta sala. Pulsa Entrar: no necesitas Spotify ni registrarte.";
     }
 
-    // Quien ya conectó Spotify en este navegador entra directo; si no, se le avisa de la guía.
-    if (store.get(CLIENT_ID_KEY)) ui.loginNote.textContent = "Ya conectaste tu Spotify en este navegador: entras directo.";
-
-    // Avisos que deja el servidor al volver del login (?auth=…).
     const reason = new URLSearchParams(location.search).get("auth");
     if (reason) history.replaceState(null, "", location.pathname + location.hash);
-    notice(NOTICES[reason]);
-    show(["setup", "notallowed"].includes(reason) ? "setup" : "start");
+    const back = RETURNS[reason];
+    notice(back?.text);
+    show(back?.view || "start", back?.step);
 
     root.addEventListener("click", event => {
-        const target = event.target.closest("[data-action], [data-show], [data-copy], [data-copy-ref]");
+        const target = event.target.closest("[data-action], [data-show], [data-step-go], [data-copy], [data-copy-ref]");
         if (!target) return;
 
-        if (target.dataset.show) return show(target.dataset.show);
-        if (target.dataset.copy) return copy(target.dataset.copy);
-        if (target.dataset.copyRef) return copy(ui[target.dataset.copyRef].textContent);
+        if (target.dataset.show) {
+            notice("");
+            return show(target.dataset.show);
+        }
+        if (target.dataset.stepGo) return goTo(Number(target.dataset.stepGo));
+        if (target.dataset.copy) return copy(target.dataset.copy, target);
+        if (target.dataset.copyRef) return copy(ui[target.dataset.copyRef].textContent, target);
 
         switch (target.dataset.action) {
             case "login": {
-                // Quien ya lo configuró en este navegador entra directo.
-                const saved = store.get(CLIENT_ID_KEY);
-                return saved ? loginWith(saved) : show("setup");
+                const known = store.get(CLIENT_ID_KEY);
+                return known ? loginWith(known) : show("setup", 1);
             }
+            case "reset":
+                store.set(CLIENT_ID_KEY, null);
+                ui.clientId.value = "";
+                checkClientId();
+                return show("setup", 1);
             case "shared": return loginWith(null);
+            case "paste":
+                return navigator.clipboard?.readText?.()
+                    .then(text => {
+                        ui.clientId.value = text.trim();
+                        checkClientId();
+                    })
+                    .catch(() => ui.clientId.focus());
+            case "connect": {
+                const clientId = checkClientId();
+                if (!clientId) return;
+                store.set(CLIENT_ID_KEY, clientId);
+                return loginWith(clientId);
+            }
         }
     });
 
+    ui.clientId.addEventListener("input", checkClientId);
     ui.setupForm.addEventListener("submit", event => {
         event.preventDefault();
-        const clientId = ui.clientId.value.trim();
-
-        if (!CLIENT_ID_FORMAT.test(clientId)) {
-            notice("Ese Client ID no parece correcto: son 32 letras y números, sin espacios.");
-            ui.clientId.focus();
-            return;
-        }
-
-        store.set(CLIENT_ID_KEY, clientId.toLowerCase());
-        loginWith(clientId.toLowerCase());
+        ui.connectButton.click();
     });
 
     ui.guestCode.addEventListener("input", () => { ui.guestCode.value = ui.guestCode.value.toUpperCase(); });
-
     ui.guestForm.addEventListener("submit", event => {
         event.preventDefault();
-        if (ui.guestCode.value.trim().length !== 5) {
+        const code = ui.guestCode.value.trim().toUpperCase();
+        if (code.length !== 5) {
             notice("El código de la sala tiene 5 letras o números.");
             return ui.guestCode.focus();
         }
-        onGuest(ui.guestCode.value.trim().toUpperCase());
-    });
-
-    ui.deviceForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        const account = ui.account.value.trim();
-        if (!account) return ui.account.focus();
-
-        try {
-            const response = await fetch(`/auth/client-id?account=${encodeURIComponent(account)}`);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-
-            store.set(CLIENT_ID_KEY, data.clientId);
-            loginWith(data.clientId);
-        } catch (error) {
-            notice(error.message || "No se pudo buscar tu cuenta.");
-        }
+        onGuest(code);
     });
 }

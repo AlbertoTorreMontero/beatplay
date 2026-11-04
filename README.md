@@ -68,8 +68,7 @@ src/
     index.js             Punto de entrada (npm start)
     config.js            Variables de entorno
     app.js               Express: páginas, login y API
-    session.js           Sesiones por navegador (cookie) y renovación de tokens
-    accounts.js          Qué Client ID usa cada cuenta (data/accounts.json)
+    session.js           Sesión cifrada en la cookie (sobrevive a reinicios) y renovación de tokens
     library.js           Caché y muestras aleatorias de playlists (independiente del servicio)
     routes/              auth.js (login) y api.js (/api/*)
     providers/           Adaptadores de servicios de música: index.js (interfaz) y spotify.js
@@ -93,9 +92,8 @@ Los juegos no saben qué servicio hay detrás: usan un modelo de canción neutro
 
 1. **Servidor:** crea `src/server/providers/<nombre>.js` con la interfaz descrita en
    `providers/index.js` (login, perfil, playlists, páginas de canciones) y regístralo allí.
-2. **Cliente:** el proveedor indica qué reproductor usar (`playback`). Si el servicio da audios de
-   muestra, `preview` ya funciona con cualquier URL. Si tiene SDK propio, crea
-   `src/client/lib/player/<nombre>.js` siguiendo `player/index.js`.
+2. **Cliente:** el reproductor es el Web Playback SDK (`lib/player/spotify-sdk.js`). Otro servicio
+   necesita su propio adaptador con la misma forma, usado desde `player/index.js`.
 3. Pon `MUSIC_PROVIDER=<nombre>` en el `.env`.
 
 ## Desplegarlo (Render)
@@ -103,11 +101,13 @@ Los juegos no saben qué servicio hay detrás: usan un modelo de canción neutro
 1. *New → Web Service* con este repositorio. Build: `npm install`. Start: `npm start`.
 2. Variables de entorno: las de `.env.example`, con `SPOTIFY_REDIRECT_URI=https://TU-APP.onrender.com/callback`.
 3. Si usas la app compartida, añade esa misma Redirect URI en su Dashboard.
-4. Para no perder qué Client ID usa cada cuenta al reiniciar, monta un disco y apunta `DATA_DIR` a él.
-5. *Health check path*: `/healthz`.
+4. *Health check path*: `/healthz`.
 
-Las sesiones y las salas viven en memoria: si el servicio se reinicia o se duerme (plan gratuito),
-hay que volver a iniciar sesión y las salas abiertas se pierden.
+La sesión va cifrada en la cookie: reiniciar o dormir el servicio no obliga a volver a entrar.
+Las salas sí viven en memoria: si el servicio se reinicia, las salas abiertas se pierden.
+
+La música suena siempre en la web (Web Playback SDK, Premium). En móviles Spotify no lo soporta
+oficialmente: la música se pone desde un ordenador y los demás juegan desde el móvil.
 
 ## Notas sobre Spotify
 

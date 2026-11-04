@@ -219,7 +219,7 @@ function begin() {
     keepAwake();
 }
 
-// Pausa (cambio de pestaña, ir a la app de Spotify, tecla P o Espacio) y vuelta.
+// Pausa (cambio de pestaña, tecla P o Espacio) y vuelta.
 function pauseGame() {
     if (!game?.running) return;
     stopLoop();
