@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeatPlay — Juega con tu música</title>
-    <meta name="description" content="Convierte tus playlists en juegos: Snake, Bingo musical, Hipster y Music Roulette.">
+    <meta name="description" content="Convierte tus playlists de Spotify en 14 juegos: solo o en grupo, y tus amigos entran con un código, sin cuenta.">
     <meta name="theme-color" content="#0a0a0a">
 
     <link rel="stylesheet" href="/styles/tokens.css">
@@ -16,9 +16,10 @@
 <body>
 
     <nav class="landing-nav">
-        <div class="logo">BEAT<span>PLAY</span></div>
+        <a href="/" class="logo" aria-label="BeatPlay">BEAT<span>PLAY</span></a>
         <div class="nav-right">
-            <span class="nav-label">Juegos con tus playlists</span>
+            <a href="#juegos" class="nav-link">Juegos</a>
+            <a href="#como" class="nav-link">Cómo funciona</a>
             <a href="/app" class="nav-login">Entrar <span aria-hidden="true">↗</span></a>
         </div>
     </nav>
@@ -31,7 +32,7 @@
 
             <div class="hero-left">
 
-                <div class="eyebrow">MUSIC × GAMES</div>
+                <div class="eyebrow">MUSIC × GAMES <span>· 14 juegos</span></div>
 
                 <h1>
                     <span class="title-play">PLAY</span>
@@ -45,31 +46,34 @@
                         <br>
                         convertidas en juegos.
                     </p>
-                    <p class="description-meta">Snake / Bingo / Hipster / Music Roulette</p>
+                    <p class="description-meta">Solo o con toda la sala · tus amigos entran con un código, sin cuenta</p>
                 </div>
 
-                <a href="/app" class="main-button">
-                    <span>Entrar con <span data-provider-name>Spotify</span></span>
-                    <span class="button-arrow" aria-hidden="true">↗</span>
-                </a>
+                <div class="hero-actions">
+                    <a href="/app" class="main-button">
+                        <span>Entrar con <span data-provider-name>Spotify</span></span>
+                        <span class="button-arrow" aria-hidden="true">↗</span>
+                    </a>
+                    <a href="/app" class="code-button">Tengo un código de sala</a>
+                </div>
 
             </div>
 
             <div class="hero-right" aria-hidden="true">
                 <div class="poster">
                     <div class="poster-top">
-                        <span>BP — 001</span>
+                        <span>BP — 002</span>
                         <span>EST. 2026</span>
                     </div>
                     <div class="poster-center">
                         <div class="poster-circle"></div>
                         <div class="poster-word poster-your">YOUR</div>
                         <div class="poster-word poster-music">MUSIC</div>
-                        <div class="poster-small">YOUR RULES</div>
+                        <div class="poster-small">YOUR PARTY</div>
                     </div>
                     <div class="poster-bottom">
                         <span>BEATPLAY</span>
-                        <span>4 JUEGOS</span>
+                        <span>14 JUEGOS</span>
                     </div>
                 </div>
             </div>
@@ -77,47 +81,177 @@
         </section>
 
 
+        <section class="facts" aria-label="En resumen">
+            <div class="fact"><strong>14</strong><span>juegos con tus canciones</span></div>
+            <div class="fact"><strong>1</strong><span>cuenta: la de quien pone la música</span></div>
+            <div class="fact"><strong>0</strong><span>apps que instalar para tus amigos</span></div>
+            <div class="fact"><strong>20</strong><span>jugadores por sala, como máximo</span></div>
+        </section>
+
+
+        <section class="how" id="como">
+
+            <div class="section-header">
+                <h2>Cómo funciona</h2>
+                <span class="section-meta">Tres pasos, ni uno más</span>
+            </div>
+
+            <ol class="steps">
+                <li class="step">
+                    <span class="step-number">01</span>
+                    <strong>Conecta tu <span data-provider-name>Spotify</span></strong>
+                    <p>Entras una vez con tu cuenta Premium. Tus playlists aparecen solas.</p>
+                </li>
+                <li class="step">
+                    <span class="step-number">02</span>
+                    <strong>Elige juego y playlist</strong>
+                    <p>La música suena en tu móvil o en tu ordenador, desde el navegador.</p>
+                </li>
+                <li class="step">
+                    <span class="step-number">03</span>
+                    <strong>Pasa el código</strong>
+                    <p>Tus amigos abren el enlace o escriben el código de 5 letras y juegan desde su móvil.</p>
+                </li>
+            </ol>
+
+        </section>
+
+
         <section class="games" id="juegos">
 
             <div class="section-header">
-                <h2>Cuatro juegos</h2>
-                <span class="section-meta">Una cuenta, todas tus playlists</span>
+                <h2>Para ti</h2>
+                <span class="section-meta">Un jugador · tu playlist</span>
             </div>
 
-            <div class="games-grid">
-
+            <div class="games-grid games-solo">
                 <a class="game-card" href="/app">
+                    <span class="game-number">01</span>
                     <span class="game-info">
-                        <span class="game-type">Arcade · 1 jugador</span>
-                        <span class="game-title">SNAKE</span>
-                        <span class="game-text">Cada portada que comes cambia la canción. En modo Synth, la serpiente acelera con ella.</span>
+                        <span class="game-type">Arcade</span>
+                        <span class="game-title">Snake</span>
+                        <span class="game-text">Cada portada que comes cambia la canción. En Synth, la velocidad sigue los BPM de cada tema.</span>
                     </span>
                 </a>
-
                 <a class="game-card" href="/app">
+                    <span class="game-number">02</span>
                     <span class="game-info">
-                        <span class="game-type">Fiesta · en grupo</span>
-                        <span class="game-title">BINGO</span>
-                        <span class="game-text">Imprime cartones con tus canciones y canta el bingo con la música sonando.</span>
+                        <span class="game-type">Oído</span>
+                        <span class="game-title">Intro</span>
+                        <span class="game-text">Adivínala con un segundo. Si no, un poco más: 1, 2, 4, 7, 11, 16.</span>
                     </span>
                 </a>
-
                 <a class="game-card" href="/app">
+                    <span class="game-number">03</span>
                     <span class="game-info">
-                        <span class="game-type">Quiz · 1 jugador</span>
-                        <span class="game-title">HIPSTER</span>
+                        <span class="game-type">Quiz</span>
+                        <span class="game-title">Hipster</span>
                         <span class="game-text">Escucha y coloca cada canción en su año. Un fallo y se acaba la racha.</span>
                     </span>
                 </a>
+            </div>
 
+            <div class="section-header section-party">
+                <h2>Para la fiesta</h2>
+                <span class="section-meta">Solo el anfitrión necesita cuenta · el resto, un código</span>
+            </div>
+
+            <div class="games-grid">
                 <a class="game-card" href="/app">
+                    <span class="game-number">04</span>
                     <span class="game-info">
-                        <span class="game-type">Online · hasta 10</span>
-                        <span class="game-title">ROULETTE</span>
-                        <span class="game-text">Cinco portadas de la playlist de alguien. Quince segundos para adivinar de quién es.</span>
+                        <span class="game-type">Rapidez · hasta 20</span>
+                        <span class="game-title">Pulsador</span>
+                        <span class="game-text">Suena en tu móvil y gana quien la acierta antes.</span>
                     </span>
                 </a>
-
+                <a class="game-card" href="/app">
+                    <span class="game-number">05</span>
+                    <span class="game-info">
+                        <span class="game-type">Reflejos</span>
+                        <span class="game-title">Sillas musicales</span>
+                        <span class="game-text">Se corta la música: pulsa el primero. Solo vale el oído.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">06</span>
+                    <span class="game-info">
+                        <span class="game-type">Deducción</span>
+                        <span class="game-title">Desafinado</span>
+                        <span class="game-text">Uno tararea otra canción y no lo sabe. Cazadle.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">07</span>
+                    <span class="game-info">
+                        <span class="game-type">Creatividad</span>
+                        <span class="game-title">Duelo de DJs</span>
+                        <span class="game-text">La canción perfecta para cada situación. Se vota la mejor.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">08</span>
+                    <span class="game-info">
+                        <span class="game-type">Faroles</span>
+                        <span class="game-title">Farol</span>
+                        <span class="game-text">Inventa el nombre del disco y encuentra el de verdad.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">09</span>
+                    <span class="game-info">
+                        <span class="game-type">Pujas</span>
+                        <span class="game-title">Puja justa</span>
+                        <span class="game-text">Año o duración: gana quien más se acerca sin pasarse.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">10</span>
+                    <span class="game-info">
+                        <span class="game-type">Apuestas</span>
+                        <span class="game-title">Subasta</span>
+                        <span class="game-text">«Yo la adivino en 3 segundos». Demuéstralo.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">11</span>
+                    <span class="game-info">
+                        <span class="game-type">Karaoke</span>
+                        <span class="game-title">Sigue cantando</span>
+                        <span class="game-text">Se corta la música y te toca seguir cantando.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">12</span>
+                    <span class="game-info">
+                        <span class="game-type">Dibujo</span>
+                        <span class="game-title">Dibuja la portada</span>
+                        <span class="game-text">Todos dibujan la misma portada. Galería y votación.</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">13</span>
+                    <span class="game-info">
+                        <span class="game-type">Online</span>
+                        <span class="game-title">Roulette</span>
+                        <span class="game-text">Cinco portadas de la playlist de alguien: ¿de quién es?</span>
+                    </span>
+                </a>
+                <a class="game-card" href="/app">
+                    <span class="game-number">14</span>
+                    <span class="game-info">
+                        <span class="game-type">En grupo</span>
+                        <span class="game-title">Bingo</span>
+                        <span class="game-text">Cartones con tus canciones para imprimir y cantar.</span>
+                    </span>
+                </a>
+                <a class="game-card game-cta" href="/app">
+                    <span class="game-info">
+                        <span class="game-type">Tu sala te espera</span>
+                        <span class="game-title">Crea una sala <span aria-hidden="true">↗</span></span>
+                        <span class="game-text">Elige juego y playlist, y pasa el código.</span>
+                    </span>
+                </a>
             </div>
 
         </section>

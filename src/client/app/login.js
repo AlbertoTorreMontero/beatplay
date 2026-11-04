@@ -17,7 +17,8 @@ const loginWith = clientId => { location.href = clientId ? `/login?clientId=${cl
 
 function show(view) {
     for (const section of $$("[data-login]")) section.classList.toggle("hidden", section.dataset.login !== view);
-    $(`[data-login="${view}"] input, [data-login="${view}"] button`)?.focus({ preventScroll: true });
+    // En la pantalla de inicio no se enfoca nada: en el móvil abriría el teclado sin pedirlo.
+    if (view !== "start") $(`[data-login="${view}"] input, [data-login="${view}"] button`)?.focus({ preventScroll: true });
 }
 
 function notice(text) {
@@ -35,8 +36,8 @@ async function copy(text) {
 }
 
 /**
- * Prepara la pantalla. `onGuest` se llama al pulsar "Unirme sin cuenta".
- * `invite` es el código de sala de un enlace de invitación, si lo hay.
+ * Prepara la pantalla. `onGuest(código)` entra a una sala sin cuenta.
+ * `invite` es el código de sala de un enlace de invitación, si lo hay (queda ya escrito).
  */
 export function initLogin({ config, onGuest, invite }) {
     const root = $("#loginScreen");
@@ -48,14 +49,15 @@ export function initLogin({ config, onGuest, invite }) {
     $("[data-action=shared]", root).hidden = !config.sharedApp;
     ui.clientId.value = store.get(CLIENT_ID_KEY, "");
 
-    // Con un enlace de invitación, lo primero es entrar a la sala.
+    // Con un enlace de invitación, el código ya está puesto: un toque y a la sala.
     if (invite) {
-        const guest = $("[data-action=guest]", root);
-        guest.textContent = `Entrar a la sala ${invite} sin cuenta`;
-        guest.className = "btn btn-lg";
-        $("[data-action=login]", root).className = "btn btn-outline btn-lg";
-        guest.parentElement.prepend(guest);
+        ui.guestCode.value = invite;
+        ui.guestTitle.textContent = `Sala ${invite}`;
+        ui.guestText.textContent = "Te han invitado a esta sala. Entra sin cuenta: no necesitas Spotify.";
     }
+
+    // Quien ya conectó Spotify en este navegador entra directo; si no, se le avisa de la guía.
+    if (store.get(CLIENT_ID_KEY)) ui.loginNote.textContent = "Ya conectaste tu Spotify en este navegador: entras directo.";
 
     // Avisos que deja el servidor al volver del login (?auth=…).
     const reason = new URLSearchParams(location.search).get("auth");
@@ -78,8 +80,6 @@ export function initLogin({ config, onGuest, invite }) {
                 return saved ? loginWith(saved) : show("setup");
             }
             case "shared": return loginWith(null);
-            // Con enlace de invitación entra directo; si no, escribe el código de la sala.
-            case "guest": return invite ? onGuest() : show("guest");
         }
     });
 
@@ -97,13 +97,15 @@ export function initLogin({ config, onGuest, invite }) {
         loginWith(clientId.toLowerCase());
     });
 
+    ui.guestCode.addEventListener("input", () => { ui.guestCode.value = ui.guestCode.value.toUpperCase(); });
+
     ui.guestForm.addEventListener("submit", event => {
         event.preventDefault();
         if (ui.guestCode.value.trim().length !== 5) {
             notice("El código de la sala tiene 5 letras o números.");
             return ui.guestCode.focus();
         }
-        onGuest(ui.guestCode.value);
+        onGuest(ui.guestCode.value.trim().toUpperCase());
     });
 
     ui.deviceForm.addEventListener("submit", async event => {

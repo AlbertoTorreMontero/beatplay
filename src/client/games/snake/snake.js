@@ -1,11 +1,15 @@
 /*
  * SNAKE
  * Clásico: cada portada que comes cambia la canción.
- * Synth: además la serpiente acelera a lo largo de cada canción (posición real
- * del reproductor) y el tablero toma el color de la portada.
+ * Synth: la velocidad sigue el ritmo de cada canción. Más BPM, más rápida; al cambiar de
+ * canción acelera o frena (con una transición corta, pero se nota). El tablero toma el color
+ * de la portada y late al compás.
+ *
+ * El tempo no lo da Spotify (ya no lo ofrece a apps nuevas): lo pide el servidor a Deezer por
+ * ISRC, una sola petición para toda la playlist y solo si se juega en Synth.
  */
 import { refs, toast, pulse, shuffle, store } from "../../lib/ui.js";
-import { tracks as loadTracks } from "../../lib/api.js";
+import { api, tracks as loadTracks } from "../../lib/api.js";
 import { player, positionNow } from "../../lib/player/index.js";
 
 // La rejilla se adapta a la pantalla al entrar: apaisada en el ordenador, vertical en el móvil.
@@ -13,7 +17,12 @@ import { player, positionNow } from "../../lib/player/index.js";
 let COLS = 20;
 let ROWS = 15;
 const CELL = 40;
-const TICK = { classic: 130, synthSlow: 150, synthFast: 90 };
+const TICK = { classic: 130 };
+// Synth: milisegundos por casilla = BEAT_MS / BPM (70 BPM ≈ 190 ms, 120 ≈ 112 ms, 170 ≈ 79 ms).
+const BEAT_MS = 13500;
+const TICK_RANGE = [62, 195];
+const UNKNOWN_BPM = 115;   // si no se conoce el tempo de una canción
+const EASE_MS = 1400;      // lo que tarda en pasar de una velocidad a otra
 const TOUCH_SLOWER = 15; // con el dedo se reacciona algo más lento que con el teclado
 const SWIPE_PX = 22;
 const BASE_COLOR = { h: 262, s: 22 }; // lila de la marca
@@ -27,7 +36,7 @@ const KEYS = {
 };
 const HINTS = {
     classic: "Come portadas para cambiar de canción. No choques con las paredes ni contigo.",
-    synth: "La serpiente acelera mientras avanza la canción y el tablero toma el color de su portada."
+    synth: "La velocidad sigue el ritmo de cada canción: más BPM, más rápida. El tablero late al compás y toma el color de la portada."
 };
 
 let ui = {};
@@ -49,6 +58,8 @@ let gridReady = false;
 
 const images = new Map();
 const palettes = new Map();
+let tempos = null; // promesa: isrc → BPM (se pide una vez por playlist)
+let bpms = new Map();
 
 
 // =====================================================
@@ -59,6 +70,8 @@ async function mount(container, { playlist }) {
     root = container;
     ui = refs(root);
     source = await loadTracks.sample(playlist.id);
+    tempos = null;
+    bpms = new Map();
 
     if (!source.length) throw new Error("Esta playlist no tiene canciones que se puedan reproducir.");
 
@@ -93,6 +106,7 @@ async function mount(container, { playlist }) {
 
     setMode(mode);
     loadQueue();
+    if (mode === "synth") loadTempos();
     reset();
     draw(0);
     overlay("ready");
@@ -181,7 +195,9 @@ function reset() {
         accumulator: 0,
         last: 0,
         color: BASE_COLOR,
-        flash: null // destello al comer
+        flash: null, // destello al comer
+        tick: TICK.classic,
+        tempoFlash: null // aviso de cambio de ritmo
     };
     ui.score.textContent = "0";
 }
@@ -193,6 +209,7 @@ function begin() {
     overlay(null);
     nextTrack();
     placeFood();
+    game.tick = targetTick(); // la primera canción arranca ya a su ritmo
 
     game.running = true;
     game.last = performance.now();
@@ -266,10 +283,13 @@ function stopLoop() {
 function loop(now) {
     if (!game?.running) return;
 
-    game.accumulator += Math.min(now - game.last, 250);
+    const elapsed = Math.min(now - game.last, 250);
+    game.accumulator += elapsed;
     game.last = now;
 
-    const tick = currentTick();
+    // La velocidad va hacia la de la canción que suena: acelera o frena en algo más de un segundo.
+    game.tick += (targetTick() - game.tick) * Math.min(1, elapsed / (EASE_MS / 3));
+    const tick = game.tick;
 
     while (game.accumulator >= tick) {
         game.accumulator -= tick;
@@ -295,8 +315,25 @@ function setMode(next) {
     }
 
     ui.hint.textContent = HINTS[mode];
+    ui.bpmStat.hidden = mode !== "synth";
+    if (mode === "synth") loadTempos();
     if (!game?.running) draw(0);
 }
+
+// Tempo de toda la playlist en una sola petición a nuestro servidor (que lo pide a Deezer).
+function loadTempos() {
+    if (tempos) return tempos;
+    const codes = source.map(track => track.isrc).filter(Boolean);
+    tempos = codes.length
+        ? api(`/api/tempo?isrc=${codes.join(",")}`).then(result => {
+            for (const [isrc, bpm] of Object.entries(result || {})) if (bpm) bpms.set(isrc, bpm);
+            if (ui.bpm && game?.track) ui.bpm.textContent = bpmOf(game.track) || "—";
+        }).catch(() => {})
+        : Promise.resolve();
+    return tempos;
+}
+
+const bpmOf = track => (track?.isrc && bpms.get(track.isrc)) || null;
 
 // Avance (0-1) de la canción que suena, solo si el reproductor habla de esta canción.
 function songProgress() {
@@ -304,10 +341,20 @@ function songProgress() {
     return positionNow(playback) / playback.duration;
 }
 
-function currentTick() {
+// Milisegundos por casilla que tocan ahora.
+function targetTick() {
     const extra = coarse ? TOUCH_SLOWER : 0;
     if (mode !== "synth") return TICK.classic + extra;
-    return TICK.synthSlow - (TICK.synthSlow - TICK.synthFast) * songProgress() + extra;
+    const bpm = bpmOf(game?.track) || UNKNOWN_BPM;
+    return Math.min(TICK_RANGE[1], Math.max(TICK_RANGE[0], BEAT_MS / bpm)) + extra;
+}
+
+// 1 justo en cada pulso de la canción y cae hasta 0: para que el tablero lata al compás.
+function beat() {
+    const bpm = bpmOf(game?.track) || UNKNOWN_BPM;
+    const time = playback && playback.ref === game?.track?.ref && !playback.paused ? positionNow(playback) : performance.now();
+    const phase = (time * bpm / 60000) % 1;
+    return (1 - phase) ** 3;
 }
 
 
@@ -369,6 +416,7 @@ function nextTrack() {
     queueIndex++;
 
     const track = queue[queueIndex];
+    game.prevBpm = bpmOf(game.track);
     game.track = track;
     playback = null; // hasta que llegue el estado de la canción nueva, el avance es 0
 
@@ -376,6 +424,7 @@ function nextTrack() {
     if (track.cover) ui.cover.src = track.cover;
     ui.track.textContent = track.name;
     ui.artist.textContent = track.artist;
+    if (mode === "synth") showTempo(game.track === track && game.running ? game.prevBpm : null, track);
 
     coverColor(track.cover).then(color => {
         if (game?.track === track) game.color = color;
@@ -385,6 +434,16 @@ function nextTrack() {
         console.error("Snake:", error);
         toast(error.message, { error: true });
     });
+}
+
+// Muestra el BPM nuevo y, si cambia mucho, avisa en el tablero de que acelera o frena.
+function showTempo(previous, track) {
+    const bpm = bpmOf(track);
+    ui.bpm.textContent = bpm || "—";
+    pulse(ui.bpm);
+    if (previous && bpm && Math.abs(bpm - previous) >= 8) {
+        game.tempoFlash = { faster: bpm > previous, bpm, at: performance.now() };
+    }
 }
 
 function placeFood() {
@@ -488,8 +547,8 @@ function draw(alpha) {
     ctx.fillStyle = synth ? tint(6) : "#0d0d0c";
     ctx.fillRect(0, 0, W, H);
 
-    // Rejilla de puntos: marca las casillas sin cargar el tablero.
-    ctx.fillStyle = synth ? tint(55, 0.22) : "#262624";
+    // Rejilla de puntos: marca las casillas sin cargar el tablero. En Synth late con la música.
+    ctx.fillStyle = synth ? tint(55, 0.18 + beat() * 0.35) : "#262624";
     for (let x = 1; x < COLS; x++) {
         for (let y = 1; y < ROWS; y++) ctx.fillRect(x * CELL - 1, y * CELL - 1, 2, 2);
     }
@@ -509,7 +568,27 @@ function draw(alpha) {
     if (synth) {
         ctx.fillStyle = tint(65);
         ctx.fillRect(0, 0, W * songProgress(), 4);
+        drawTempoFlash(W, H);
     }
+}
+
+// "▲ MÁS RÁPIDO" / "▼ MÁS LENTO" durante un segundo y medio al cambiar de ritmo.
+function drawTempoFlash(W, H) {
+    const flash = game.tempoFlash;
+    if (!flash) return;
+    const t = (performance.now() - flash.at) / 1500;
+    if (t >= 1) {
+        game.tempoFlash = null;
+        return;
+    }
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, (1 - t) * 2);
+    ctx.fillStyle = flash.faster ? "#ec7a65" : "#8fcf9c";
+    ctx.font = `${Math.round(CELL * 1.6)}px "Bebas Neue", Impact, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${flash.faster ? "▲ MÁS RÁPIDO" : "▼ MÁS LENTO"} · ${flash.bpm} BPM`, W / 2, H / 2 - t * CELL);
+    ctx.restore();
 }
 
 function cell(cover, px, py, fallback, inset = 3) {
@@ -533,11 +612,11 @@ function cell(cover, px, py, fallback, inset = 3) {
 function drawFood(synth) {
     if (!game.food) return;
 
-    // La comida late suavemente para que se encuentre de un vistazo.
-    const beat = (Math.sin(performance.now() / 180) + 1) / 2;
+    // La comida late para que se encuentre de un vistazo (en Synth, al compás de la canción).
+    const pulseNow = synth ? beat() : (Math.sin(performance.now() / 180) + 1) / 2;
     const { x, y } = game.food;
 
-    ctx.strokeStyle = synth ? tint(70, 0.5 + beat * 0.5) : `rgb(241 240 235 / ${0.35 + beat * 0.5})`;
+    ctx.strokeStyle = synth ? tint(70, 0.5 + pulseNow * 0.5) : `rgb(241 240 235 / ${0.35 + pulseNow * 0.5})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2, 6);

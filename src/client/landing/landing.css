@@ -688,3 +688,116 @@ a { text-decoration: none; }
         padding: 20px;
     }
 }
+
+/* =========================================================
+   NOVEDADES: navegación, códigos, cifras, pasos y dos grupos de juegos
+========================================================= */
+
+.nav-link {
+    color: var(--grey);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    transition: color 0.2s ease;
+}
+.nav-link:hover { color: var(--bone); }
+
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+
+.code-button {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--bone-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+.code-button:hover { color: var(--bone); border-color: var(--bone); }
+
+/* Cifras */
+.facts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line);
+}
+.fact {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 34px 5vw 38px;
+    border-right: 1px solid var(--line);
+}
+.fact:last-child { border-right: 0; }
+.fact strong { font-family: var(--display); font-size: clamp(64px, 7vw, 110px); font-weight: 400; line-height: 0.8; }
+.fact:nth-child(3) strong { color: var(--accent-text); }
+.fact span { max-width: 210px; color: var(--grey); font-family: var(--mono); font-size: 11px; letter-spacing: 1px; line-height: 1.6; }
+
+/* Cómo funciona */
+.how { padding: 110px 5vw; border-top: 1px solid var(--line); }
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+}
+.step {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: 28px 25px 36px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+.step-number { color: var(--accent); font-family: var(--mono); font-size: 11px; }
+.step strong { font-family: var(--display); font-size: clamp(34px, 3.4vw, 50px); font-weight: 400; line-height: 0.95; }
+.step p { max-width: 320px; color: var(--grey); font-size: 14px; line-height: 1.55; }
+
+/* Dos grupos de juegos */
+.games-grid.games-solo { grid-template-columns: repeat(3, 1fr); }
+.section-party { margin-top: 110px; }
+.games .game-card { min-height: 280px; justify-content: flex-start; }
+.games .game-number { position: static; display: block; }
+.games .game-info { margin-top: auto; }
+.games-grid:not(.games-solo) .game-title { font-size: clamp(40px, 4vw, 62px); }
+.game-cta { background: var(--accent); }
+.game-cta .game-type, .game-cta .game-text { color: var(--bone-dim); }
+.game-cta:hover .game-type, .game-cta:hover .game-text { color: var(--ink); }
+.games-solo .game-card { min-height: 330px; }
+
+@media (max-width: 1000px) {
+    .facts { grid-template-columns: repeat(2, 1fr); }
+    .fact:nth-child(2) { border-right: 0; }
+    .fact:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
+    .steps { grid-template-columns: 1fr; }
+    .games-grid.games-solo { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 800px) {
+    .nav-link { display: none; }
+    .how { padding: 80px 25px; }
+    .fact { padding: 26px 25px 30px; }
+    .section-party { margin-top: 80px; }
+    /* En el móvil, los juegos en dos columnas compactas: 14 tarjetas no deben ser un scroll eterno. */
+    .games-grid, .games-grid.games-solo { grid-template-columns: repeat(2, 1fr); }
+    .games .game-card, .games-solo .game-card { min-height: 0; padding: 18px 16px 20px; justify-content: flex-start; }
+    .games .game-number { margin-bottom: 26px; }
+    .games .game-title, .games-grid:not(.games-solo) .game-title { margin: 8px 0 10px; font-size: clamp(32px, 9vw, 52px); }
+    .games .game-text { font-size: 12px; }
+}
+
+@media (max-width: 600px) {
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .code-button { align-self: center; }
+    .how { padding: 70px 20px; }
+    .fact { padding: 22px 20px 26px; }
+    .fact strong { font-size: 64px; }
+    .step { padding: 22px 20px 26px; }
+    .games .game-card { padding: 16px 14px 18px; }
+    .games .game-number { margin-bottom: 18px; }
+}
+
+@media (max-width: 800px) {
+    .games-solo .game-card:last-child { grid-column: span 2; }
+}

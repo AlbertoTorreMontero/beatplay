@@ -13,7 +13,9 @@
 import { api } from "../api.js";
 
 const SDK_URL = "https://sdk.scdn.co/spotify-player.js";
+export const PLAYER_NAME = "BeatPlay"; // así se llama este dispositivo en Spotify Connect
 const READY_TIMEOUT = 15000;
+const TOKEN_MARGIN_MS = 5 * 60 * 1000; // se reutiliza el token mientras le queden 5 min
 const MIN_GAP_MS = 1000;
 
 function loadSdk() {
@@ -30,7 +32,7 @@ function loadSdk() {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function createPlayer({ emit, warn }) {
+export function createPlayer({ emit, warn, readyTimeout = READY_TIMEOUT }) {
 
     let sdk = null;
     let deviceId = null;
@@ -90,8 +92,13 @@ export function createPlayer({ emit, warn }) {
         return sending;
     }
 
+    // El token se guarda: el SDK lo pide al conectar y al renovarse, y no hace falta preguntar cada vez.
+    let cached = null;
     async function token() {
-        return (await api("/api/player/token")).accessToken;
+        if (cached && cached.expiresAt - Date.now() > TOKEN_MARGIN_MS) return cached.value;
+        const { accessToken, expiresIn } = await api("/api/player/token");
+        cached = { value: accessToken, expiresAt: Date.now() + expiresIn * 1000 };
+        return accessToken;
     }
 
     async function init() {
@@ -99,7 +106,7 @@ export function createPlayer({ emit, warn }) {
         await loadSdk();
 
         sdk = new window.Spotify.Player({
-            name: "BeatPlay",
+            name: PLAYER_NAME,
             volume: 0.6,
             // El SDK pide el token cuando lo necesita: una sesión larga no se queda sin permiso.
             getOAuthToken: callback => token().then(callback).catch(error => console.error("Token:", error))
@@ -107,11 +114,12 @@ export function createPlayer({ emit, warn }) {
 
         // Firefox, Safari y los móviles solo dejan sonar audio que empieza con un toque del usuario.
         const activate = () => sdk.activateElement?.();
-        document.addEventListener("pointerdown", activate, { once: true, capture: true });
-        document.addEventListener("keydown", activate, { once: true, capture: true });
+        // En el móvil (sobre todo iPhone) conviene repetirlo en cada toque: no cuesta nada.
+        document.addEventListener("pointerdown", activate, { capture: true });
+        document.addEventListener("keydown", activate, { capture: true });
 
         const deviceReady = new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error("El reproductor de Spotify tardó demasiado en responder.")), READY_TIMEOUT);
+            const timeout = setTimeout(() => reject(new Error("El reproductor de Spotify tardó demasiado en responder.")), readyTimeout);
 
             // Sin Premium nunca llega "ready": mejor avisar que esperar al timeout.
             sdk.addListener("account_error", () => {
@@ -172,6 +180,12 @@ export function createPlayer({ emit, warn }) {
 
     return {
         init,
+
+        // Al pasar a la app de Spotify: este dispositivo deja de existir en Spotify Connect.
+        disconnect() {
+            wanted = null;
+            sdk?.disconnect();
+        },
 
         load(tracks) {
             list = tracks;

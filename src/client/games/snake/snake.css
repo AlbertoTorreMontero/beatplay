@@ -123,9 +123,13 @@
     .snake-overlay .btn-lg { min-height: 52px; }
 }
 
-/* Muy estrecho: solo los puntos (el récord se ve al terminar). */
+/* Muy estrecho: solo los puntos y el BPM, con la etiqueta encima (el récord se ve al terminar). */
 @media (max-width: 420px) {
     .snake .stat:nth-child(2) { display: none; }
+    .game.snake .game-head > .stats { min-width: 0; }
+    .snake .stat { flex-direction: column; align-items: flex-start; gap: 0; min-width: 0; padding: 2px var(--space-3); }
+    .snake .stat span { font-size: 0.65rem; }
+    .snake .stat strong { font-size: 1.35rem; }
 }
 
 @media (max-height: 620px) and (pointer: coarse) {

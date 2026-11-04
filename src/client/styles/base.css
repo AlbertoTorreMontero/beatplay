@@ -29,6 +29,10 @@ a { color: inherit; }
 
 .hidden, [hidden] { display: none !important; }
 
+/* Nunca se puede arrastrar la página hacia los lados (en el móvil da sensación de web rota).
+   clip no crea barra de scroll ni rompe los elementos sticky. */
+html, body { overflow-x: clip; overscroll-behavior-x: none; }
+
 .visually-hidden {
     position: absolute; width: 1px; height: 1px; overflow: hidden;
     clip: rect(0 0 0 0); white-space: nowrap;

@@ -37,17 +37,36 @@
 
                 <p id="loginNotice" class="login-notice" role="alert" hidden></p>
 
-                <!-- Inicio -->
+                <!-- Inicio: dos accesos bien separados -->
                 <div data-login="start" class="login-view">
-                    <p class="lead">Juega con tus playlists de <span data-provider-name>Spotify</span>. En las partidas en grupo, solo quien pone la música necesita cuenta.</p>
-                    <div class="login-actions">
-                        <button class="btn btn-lg" type="button" data-action="login">Entrar con <span data-provider-name>Spotify</span></button>
-                        <button class="btn btn-outline btn-lg" type="button" data-action="guest">Unirme a una partida sin cuenta</button>
+                    <p class="lead">Juegos con tus playlists de <span data-provider-name>Spotify</span>. ¿Cómo entras?</p>
+
+                    <div class="access">
+
+                        <form class="access-card" data-ref="guestForm" aria-labelledby="accessGuest">
+                            <span class="access-tag">Sin cuenta</span>
+                            <h2 id="accessGuest" class="display" data-ref="guestTitle">Tengo un código</h2>
+                            <p class="muted" data-ref="guestText">Te han pasado el código de una sala. Escríbelo y juega desde aquí: no necesitas Spotify ni registrarte.</p>
+                            <div class="access-join">
+                                <input class="input rl-code-input" data-ref="guestCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12" aria-label="Código de la sala">
+                                <button class="btn btn-lg" type="submit">Entrar</button>
+                            </div>
+                        </form>
+
+                        <div class="access-card access-host" aria-labelledby="accessHost">
+                            <span class="access-tag">Con <span data-provider-name>Spotify</span> Premium</span>
+                            <h2 id="accessHost" class="display">Pongo la música</h2>
+                            <p class="muted">Para jugar solo o crear una sala para tus amigos. La música sale de tus playlists.</p>
+                            <button class="btn btn-lg" type="button" data-action="login" data-ref="loginButton">Entrar con <span data-provider-name>Spotify</span></button>
+                            <p class="access-note" data-ref="loginNote">La primera vez te guiamos para conectarlo (3 minutos).</p>
+                            <div class="access-links">
+                                <button class="link" type="button" data-show="device">Ya lo conecté en otro dispositivo</button>
+                                <button class="link" type="button" data-show="setup">Conectar mi Spotify paso a paso</button>
+                                <button class="link" type="button" data-action="shared" hidden>Estoy en la lista de amigos de BeatPlay</button>
+                            </div>
+                        </div>
+
                     </div>
-                    <p class="login-links">
-                        <button class="link" type="button" data-show="device">Ya lo configuré en otro dispositivo</button>
-                        <button class="link" type="button" data-action="shared" hidden>Estoy en la lista de amigos de BeatPlay</button>
-                    </p>
                 </div>
 
                 <!-- Configuración: la primera vez, cada usuario conecta su propia app de Spotify -->
@@ -80,16 +99,6 @@
                         </li>
                     </ol>
 
-                    <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
-                </div>
-
-                <!-- Invitado sin enlace: escribe el código -->
-                <div data-login="guest" class="login-view hidden">
-                    <p class="lead">Escribe el código de la sala que te han pasado. No necesitas cuenta.</p>
-                    <form class="setup-form" data-ref="guestForm">
-                        <input class="input rl-code-input" data-ref="guestCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12" aria-label="Código de la sala">
-                        <button class="btn" type="submit">Entrar</button>
-                    </form>
                     <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
                 </div>
 

@@ -114,9 +114,14 @@ function createPartyGame(spec, { coverHosts = [] } = {}) {
                 };
             },
 
+            // La lista de jugadores y puntos (room_state) solo se reenvía si ha cambiado algo de eso:
+            // con 16 móviles, cada respuesta no debe multiplicar los mensajes.
             sync() {
                 room.players.forEach(player => ctx.send(player.ws, "view", api.view(player)));
-                ctx.broadcastState(room);
+                if (room.stateDirty) {
+                    room.stateDirty = false;
+                    ctx.broadcastState(room);
+                }
             },
 
             // Solo a un jugador: para respuestas privadas que no deben dar pistas al resto.
@@ -129,6 +134,7 @@ function createPartyGame(spec, { coverHosts = [] } = {}) {
                 room.phaseMs = ms;
                 room.phaseEnds = ms ? Date.now() + ms : 0;
                 room.next = next;
+                room.stateDirty = true;
                 if (ms && next) room.timer = setTimeout(() => api.advance(), ms);
                 api.sync();
             },
@@ -200,6 +206,7 @@ function createPartyGame(spec, { coverHosts = [] } = {}) {
                 points = Math.round(points);
                 player.score += points;
                 api.me(player).gained += points;
+                room.stateDirty = true;
                 return points;
             },
 

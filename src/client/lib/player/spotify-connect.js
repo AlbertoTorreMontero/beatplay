@@ -2,13 +2,14 @@
  * Adaptador Spotify Connect: la música suena en la app de Spotify (del móvil o del ordenador)
  * y BeatPlay la controla por la API.
  *
- * Se usa cuando el reproductor del navegador no está disponible: Spotify no lo permite en
- * navegadores de móvil, y algunos navegadores de escritorio no tienen su DRM.
+ * Se usa cuando el reproductor del navegador no puede sonar: navegadores sin su DRM, o
+ * móviles (sobre todo iPhone) donde el navegador no deja reproducir sin tocar la pantalla.
  *
  * Llamadas: una por canción, pausa, reanudar o buscar. No se pregunta a Spotify qué suena
  * (serían llamadas constantes): la posición se calcula aquí desde que se pidió la canción.
  */
 import { api } from "../api.js";
+import { PLAYER_NAME } from "./spotify-sdk.js";
 
 const MIN_GAP_MS = 1000;
 // La app de Spotify tarda un poco en empezar a sonar desde que se lo pedimos.
@@ -36,7 +37,8 @@ export function createPlayer({ emit, warn }) {
 
     // La app del móvil si la hay; si no, la que esté sonando; si no, cualquiera.
     async function findDevice() {
-        const devices = await api("/api/player/devices");
+        // Nunca el reproductor del navegador de BeatPlay: si estamos aquí es porque no suena.
+        const devices = (await api("/api/player/devices")).filter(device => device.name !== PLAYER_NAME);
         const pick =
             devices.find(device => device.type === "Smartphone" && device.active) ||
             devices.find(device => device.active) ||

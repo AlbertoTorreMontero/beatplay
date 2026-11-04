@@ -380,6 +380,20 @@ describe("canciones y Hipster", () => {
         assert.ok(server.spotifyCalls.length - before <= 1, "se esperaba servir casi todo desde caché");
     });
 
+    it("el tempo (BPM) sale de Deezer por ISRC, se guarda y no gasta llamadas a Spotify", async () => {
+        const tracks = await (await user("/api/playlists/pl-dana/tracks")).json();
+        assert.ok(tracks.every(track => /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/.test(track.isrc)));
+
+        const codes = tracks.slice(0, 10).map(track => track.isrc);
+        const before = server.spotifyCalls.length;
+        const tempo = await (await user(`/api/tempo?isrc=${codes.join(",")},nada`)).json();
+
+        assert.equal(server.spotifyCalls.length, before);
+        assert.deepEqual(Object.keys(tempo).sort(), [...codes].sort());
+        assert.ok(Object.values(tempo).every(bpm => bpm === null || (bpm >= 40 && bpm <= 250)));
+        assert.ok(Object.values(tempo).some(bpm => bpm === null), "Deezer a veces no lo sabe");
+    });
+
     it("la caché no se comparte entre usuarios", async () => {
         const erin = browser(server.base);
         await erin.login("erin");

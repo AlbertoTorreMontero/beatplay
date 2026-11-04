@@ -6,7 +6,9 @@ const SAMPLE_SIZE = 50; // una página entera: misma llamada, más variedad
 const HIPSTER_SIZE = 60;
 const hasYear = track => Number.isInteger(track.year) && track.year > 0;
 
-function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
+const MAX_TEMPO = 60; // una muestra de playlist cabe entera en una petición
+
+function apiRoutes({ provider, sessions, library, tempo, hipsterPlaylistId }) {
 
     const router = express.Router();
 
@@ -40,6 +42,13 @@ function apiRoutes({ provider, sessions, library, hipsterPlaylistId }) {
             throw new HttpError("La selección oficial de Hipster no está configurada (falta HIPSTER_PLAYLIST_ID).", 503);
         }
         res.json(shuffle([...await library.sharedTracks(req, hipsterPlaylistId, hasYear)]).slice(0, HIPSTER_SIZE));
+    }));
+
+    // Tempo (BPM) de varias canciones por su ISRC: ?isrc=A,B,C. No llama a Spotify.
+    router.get("/tempo", route(async (req, res) => {
+        const codes = String(req.query.isrc || "").split(",").slice(0, MAX_TEMPO);
+        res.set("Cache-Control", "private, max-age=86400");
+        res.json(await tempo.many(codes));
     }));
 
     // ---- Reproductor del cliente: token y controles, si el proveedor los necesita.

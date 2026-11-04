@@ -17,7 +17,7 @@ const SCOPES = [
 
 const pageSize = 50;
 
-const ITEM_FIELDS = "total,items(item(id,uri,name,type,is_local,preview_url,duration_ms,artists(name),album(name,release_date,images)))";
+const ITEM_FIELDS = "total,items(item(id,uri,name,type,is_local,preview_url,duration_ms,external_ids(isrc),artists(name),album(name,release_date,images)))";
 
 const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
 
@@ -180,7 +180,8 @@ function toTrack(item) {
         year: year > 0 ? year : null,
         cover: images[0]?.url || null,
         preview: item.preview_url || null,
-        duration: item.duration_ms || null
+        duration: item.duration_ms || null,
+        isrc: item.external_ids?.isrc || null // código universal de la grabación: sirve para buscar su tempo
     };
 }
 

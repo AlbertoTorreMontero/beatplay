@@ -39,6 +39,7 @@ const track = (user, n) => ({
     type: "track",
     is_local: false,
     duration_ms: 150000 + (n * 7919) % 150000,
+    external_ids: { isrc: `ES${user.slice(0, 3).toUpperCase().padEnd(3, "X")}26${String(n).padStart(5, "0")}` },
     artists: [{ name: `${user} artist ${n % 7}` }],
     album: {
         name: `Album ${n % 9}`,
@@ -54,6 +55,12 @@ globalThis.fetch = async (url, options = {}) => {
     url = String(url);
 
     if (url.startsWith("https://embed.spotify.com/")) return publicEmbed(new URL(url).searchParams.get("uri"));
+
+    // Deezer (tempo de las canciones): BPM según el número de la canción; algunas sin dato (0).
+    if (url.startsWith("https://api.deezer.com/track/isrc:")) {
+        const n = Number(url.slice(-5));
+        return json({ id: n, bpm: n % 5 === 4 ? 0 : 70 + (n * 37) % 110 });
+    }
 
     if (url.startsWith("https://accounts.spotify.com/api/token")) {
         const body = new URLSearchParams(options.body);
