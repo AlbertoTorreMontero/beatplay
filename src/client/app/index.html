@@ -130,91 +130,120 @@
 
                 <h1 id="menuTitle" class="menu-title display">Tu juego. <em>Tu música.</em></h1>
 
-                <div class="games" role="radiogroup" aria-label="Juego">
+                <div class="game-groups" role="radiogroup" aria-label="Juego">
+
+                    <div class="games-heading games-heading-solo">
+                        <h2 class="display">Para ti</h2>
+                        <p>1 jugador · eliges la playlist aquí abajo</p>
+                    </div>
+                    <div class="games games-solo">
+
 
                     <button class="game-card" type="button" role="radio" data-game="snake">
                         <span class="game-card-meta">Arcade · 1 jugador</span>
                         <span class="game-card-title display">Snake</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Cada portada que comes cambia la canción.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="intro">
                         <span class="game-card-meta">Oído · 1 jugador</span>
                         <span class="game-card-title display">Intro</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Adivínala con un segundo. Si no, un poco más.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="hipster">
                         <span class="game-card-meta">Quiz · 1 jugador</span>
                         <span class="game-card-title display">Hipster</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Coloca cada canción en su año.</span>
                     </button>
+                    </div>
+
+                    <div class="games-heading games-heading-group">
+                        <h2 class="display">En grupo</h2>
+                        <p>Creas una sala y cada uno juega desde su móvil · la playlist se elige dentro</p>
+                    </div>
+                    <div class="games games-group">
 
                     <button class="game-card" type="button" role="radio" data-game="buzzer">
-                        <span class="game-card-meta">Fiesta · hasta 20</span>
+                        <span class="game-card-meta">Rapidez · hasta 20</span>
                         <span class="game-card-title display">Pulsador</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Suena en tu móvil; gana quien la acierta antes.</span>
-                    </button>
-
-                    <button class="game-card" type="button" role="radio" data-game="bingo">
-                        <span class="game-card-meta">Fiesta · en grupo</span>
-                        <span class="game-card-title display">Bingo</span>
-                        <span class="game-card-text">Cartones para imprimir y canciones para cantar.</span>
-                    </button>
-
-                    <button class="game-card" type="button" role="radio" data-game="roulette">
-                        <span class="game-card-meta">Online · hasta 10</span>
-                        <span class="game-card-title display">Roulette</span>
-                        <span class="game-card-text">Adivina de quién es cada playlist.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="chairs">
                         <span class="game-card-meta">Reflejos · hasta 16</span>
                         <span class="game-card-title display">Sillas musicales</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Cuando se corte la música, pulsa. El último en pie gana.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="impostor">
                         <span class="game-card-meta">Deducción · 3 a 16</span>
                         <span class="game-card-title display">Desafinado</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Uno tararea otra canción y no lo sabe. Cazadle.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="djbattle">
                         <span class="game-card-meta">Creatividad · 3 a 16</span>
                         <span class="game-card-title display">Duelo de DJs</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">La canción perfecta para cada situación. Votad la mejor.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="bluff">
                         <span class="game-card-meta">Faroles · 3 a 16</span>
                         <span class="game-card-title display">Farol</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Inventa el nombre del disco y encuentra el de verdad.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="bid">
                         <span class="game-card-meta">Pujas · hasta 16</span>
                         <span class="game-card-title display">Puja justa</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Puja por el año o la duración. El más cerca sin pasarse gana.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="auction">
                         <span class="game-card-meta">Apuestas · hasta 16</span>
                         <span class="game-card-title display">Subasta</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">«Yo la adivino en 3 segundos». Demuéstralo.</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="karaoke">
                         <span class="game-card-meta">Karaoke · hasta 16</span>
                         <span class="game-card-title display">Sigue cantando</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Se corta la música y te toca seguir. ¿Lo clavas?</span>
                     </button>
 
                     <button class="game-card" type="button" role="radio" data-game="draw">
                         <span class="game-card-meta">Dibujo · hasta 16</span>
                         <span class="game-card-title display">Dibuja la portada</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
                         <span class="game-card-text">Todos dibujan la misma portada. Se vota la mejor.</span>
                     </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="roulette">
+                        <span class="game-card-meta">Online · hasta 10</span>
+                        <span class="game-card-title display">Roulette</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
+                        <span class="game-card-text">Adivina de quién es cada playlist.</span>
+                    </button>
+
+                    <button class="game-card" type="button" role="radio" data-game="bingo">
+                        <span class="game-card-meta">En una pantalla · se imprime</span>
+                        <span class="game-card-title display">Bingo</span>
+                        <span class="game-card-art" data-art aria-hidden="true"></span>
+                        <span class="game-card-text">Cartones para imprimir y canciones para cantar.</span>
+                    </button>
+                    </div>
 
                 </div>
 

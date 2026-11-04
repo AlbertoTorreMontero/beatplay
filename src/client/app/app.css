@@ -208,6 +208,45 @@
 }
 
 
+/* ---------- Dos grupos: individuales y de grupo ---------- */
+
+.game-groups { --solo: var(--accent-text); --group: #f0906f; display: grid; gap: var(--space-4); }
+.games-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-5); }
+.games-heading-group { margin-top: var(--space-6); }
+.games-heading h2 { font-size: clamp(2.5rem, 2rem + 2vw, 3.75rem); font-weight: 400; line-height: 0.9; }
+.games-heading p { color: var(--grey); font-family: var(--mono); font-size: var(--text-xs); }
+.games-heading-solo h2 { color: var(--solo); }
+.games-heading-group h2 { color: var(--group); }
+
+/* Cada tarjeta lleva su dibujo de línea a la derecha, del color de su grupo. */
+.games-solo { --art: var(--solo); }
+.games-group { --art: var(--group); }
+.games .game-card { overflow: hidden; }
+.games .game-card-title { font-size: clamp(2.4rem, 1.5rem + 2vw, 3.5rem); overflow-wrap: break-word; }
+/* 11 juegos de grupo en 3 columnas: el último ocupa el hueco que sobra. */
+@media (min-width: 961px) { .games-group .game-card:last-child { grid-column: span 2; } }
+/* En dos columnas, si sobra uno, ocupa la fila entera. */
+@media (max-width: 960px) { .games .game-card:last-child:nth-child(odd) { grid-column: span 2; } }
+.games .game-card > :not(.game-card-art) { position: relative; z-index: 1; max-width: 62%; }
+.game-card-art {
+    position: absolute;
+    right: var(--space-4);
+    top: 50%;
+    width: min(38%, 150px);
+    aspect-ratio: 1;
+    color: var(--art);
+    transform: translateY(-50%);
+    opacity: 0.9;
+    pointer-events: none;
+    transition: transform var(--slow) var(--ease);
+}
+.game-card-art svg { width: 100%; height: 100%; }
+.game-card:hover .game-card-art { transform: translateY(-50%) rotate(-4deg) scale(1.04); }
+.games-group .game-card-meta { color: var(--group); }
+.games-solo .game-card-meta { color: var(--solo); }
+.game-card[aria-checked="true"] .game-card-meta { color: #55544f; }
+.games-group .game-card[aria-checked="true"]::after { background: var(--group); }
+
 /* ---------- Configuración y playlists ---------- */
 
 .setup { padding: var(--space-7) 0 var(--space-8); }
@@ -321,7 +360,12 @@
     .user-name, .player-status { font-size: 0; gap: 0; }
     .games { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .game-card { min-height: 128px; padding: var(--space-4); }
-    .game-card-title { font-size: clamp(1.9rem, 8.5vw, 2.6rem); }
+    .games .game-card-title { font-size: clamp(1.55rem, 7.4vw, 2.4rem); overflow-wrap: normal; }
+    .games .game-card > :not(.game-card-art) { max-width: 100%; }
+    .game-card-art { top: var(--space-3); right: var(--space-3); width: 46px; transform: none; opacity: 0.85; }
+    .game-card:hover .game-card-art { transform: none; }
+    .games .game-card-meta { max-width: calc(100% - 50px) !important; }
+    .games-heading-group { margin-top: var(--space-5); }
     .game-card-text { display: none; }
     .game-card[aria-checked="true"]::after { display: none; }
     .playlists { grid-template-columns: repeat(2, 1fr); }

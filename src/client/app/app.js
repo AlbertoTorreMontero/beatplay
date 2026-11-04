@@ -2,6 +2,7 @@
 import { $, $$, toast, showScreen } from "../lib/ui.js";
 import { getMe, logout, SESSION_EXPIRED } from "../lib/api.js";
 import { setupPlayer, player, isMobile, PLAYER_MODE_EVENT } from "../lib/player/index.js";
+import { paintArt } from "./art.js";
 import { playlistPicker } from "../lib/playlists.js";
 import { initLogin } from "./login.js";
 
@@ -23,7 +24,7 @@ import draw from "../games/draw/draw.js";
 const GAMES = { snake, intro, hipster, bingo, buzzer, roulette, chairs, impostor, djbattle, bluff, bid, auction, karaoke, draw };
 
 const state = {
-    game: "snake",
+    game: null, // nada elegido al entrar: las playlists solo salen al elegir un juego individual
     playlist: null,
     hipsterSource: "user",
     busy: false,
@@ -41,14 +42,28 @@ const templates = new Map();
 // =====================================================
 
 // ¿Hace falta playlist para empezar con la configuración actual?
-const needsPlaylist = () => GAMES[state.game].needsPlaylist && !(state.game === "hipster" && state.hipsterSource === "official");
+const needsPlaylist = () => Boolean(GAMES[state.game]?.needsPlaylist) && !(state.game === "hipster" && state.hipsterSource === "official");
+
+let picker = null;
 
 function renderMenu() {
     const game = GAMES[state.game];
     const playlistVisible = needsPlaylist();
 
-    for (const card of $$(".game-card")) {
-        card.setAttribute("aria-checked", String(card.dataset.game === state.game));
+    // Sin juego elegido no hay nada que configurar.
+    $(".setup").classList.toggle("hidden", !game);
+    $(".start-bar").classList.toggle("hidden", !game);
+    for (const card of $$(".game-card")) card.setAttribute("aria-checked", String(card.dataset.game === state.game));
+    if (!game) return;
+
+    // Las playlists se piden la primera vez que hacen falta (un juego individual), no al entrar.
+    if (playlistVisible && !picker) {
+        picker = playlistPicker($("#playlistList"), {
+            onSelect: playlist => {
+                state.playlist = playlist;
+                renderMenu();
+            }
+        });
     }
 
     $("#hipsterSource").classList.toggle("hidden", state.game !== "hipster");
@@ -72,11 +87,18 @@ function renderMenu() {
 }
 
 function initMenu() {
+    paintArt();
+
     for (const card of $$(".game-card")) {
         card.addEventListener("click", () => {
             if (state.busy) return;
+            const first = !state.game;
             state.game = card.dataset.game;
             renderMenu();
+            // En el móvil la configuración queda muy abajo: se acerca la primera vez.
+            if (first && matchMedia("(max-width: 760px)").matches) {
+                $(".setup").scrollIntoView({ behavior: "smooth", block: "start" });
+            }
         });
     }
 
@@ -86,13 +108,6 @@ function initMenu() {
             renderMenu();
         });
     }
-
-    playlistPicker($("#playlistList"), {
-        onSelect: playlist => {
-            state.playlist = playlist;
-            renderMenu();
-        }
-    });
 
     $("#startButton").addEventListener("click", () => startGame());
     $("#logoutButton").addEventListener("click", logout);

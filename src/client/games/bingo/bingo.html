@@ -5,15 +5,22 @@
             <span class="eyebrow" data-ref="playlist">Bingo musical</span>
             <h1 class="display">Bingo</h1>
         </div>
-        <div class="segmented bingo-tabs" role="tablist" aria-label="Sección">
+        <div class="segmented bingo-tabs hidden" data-ref="tabs" role="tablist" aria-label="Sección">
             <button type="button" role="tab" data-tab="cards" aria-pressed="true" aria-selected="true">Cartones</button>
             <button type="button" role="tab" data-tab="caller" aria-pressed="false" aria-selected="false">Cantar</button>
         </div>
         <button class="btn btn-outline" type="button" data-exit>Salir</button>
     </header>
 
+    <!-- Primero, la playlist de la que salen los cartones (como en los demás juegos de grupo) -->
+    <section data-ref="pickTab" class="bingo-section bingo-pick">
+        <h2 class="setup-title">Elige la playlist del bingo</h2>
+        <p data-ref="pickStatus" class="muted">Se usa la playlist entera: los cartones salen más variados.</p>
+        <div data-ref="playlists" class="playlists"></div>
+    </section>
+
     <!-- Cartones -->
-    <section data-ref="cardsTab" class="bingo-section" role="tabpanel" aria-label="Cartones">
+    <section data-ref="cardsTab" class="bingo-section hidden" role="tabpanel" aria-label="Cartones">
 
         <form data-ref="form" class="bingo-form">
             <div class="field">

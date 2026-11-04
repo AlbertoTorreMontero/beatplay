@@ -6,6 +6,7 @@
 import { refs, h, toast, shuffle } from "../../lib/ui.js";
 import { tracks as loadTracks } from "../../lib/api.js";
 import { player } from "../../lib/player/index.js";
+import { playlistPicker } from "../../lib/playlists.js";
 
 const PER_CARD = 15;
 const ROWS = 3;
@@ -19,25 +20,9 @@ let queue = [];
 let called = [];
 
 
-async function mount(container, { playlist }) {
+async function mount(container) {
     root = container;
     ui = refs(root);
-    playlistName = playlist.name;
-
-    // Con una muestra todos los cartones saldrían casi iguales: hace falta la playlist entera.
-    catalog = await loadTracks.all(playlist.id);
-
-    if (catalog.length < PER_CARD) {
-        throw new Error(`El bingo necesita al menos ${PER_CARD} canciones. Esta playlist tiene ${catalog.length}.`);
-    }
-
-    // El orden de "Cantar" se decide ya y se carga en el reproductor: cada canción nueva sale sin llamadas.
-    queue = shuffle([...catalog]);
-    called = [];
-    player.load(queue);
-
-    ui.playlist.textContent = `${playlist.name} · ${catalog.length} canciones`;
-    ui.name.value = playlist.name;
 
     root.addEventListener("click", onClick);
     ui.form.addEventListener("submit", event => {
@@ -45,6 +30,38 @@ async function mount(container, { playlist }) {
         generate();
     });
     ui.hide.addEventListener("change", renderCaller);
+
+    // La playlist se elige dentro del juego, como en los demás juegos de grupo.
+    playlistPicker(ui.playlists, { onSelect: choose });
+}
+
+async function choose(playlist) {
+    ui.pickStatus.textContent = "Leyendo la playlist entera…";
+    try {
+        // Con una muestra todos los cartones saldrían casi iguales: hace falta la playlist entera.
+        const tracks = await loadTracks.all(playlist.id);
+        if (tracks.length < PER_CARD) {
+            ui.pickStatus.textContent = `El bingo necesita al menos ${PER_CARD} canciones. Esta tiene ${tracks.length}: elige otra.`;
+            return;
+        }
+        if (!root) return;
+
+        catalog = tracks;
+        playlistName = playlist.name;
+
+        // El orden de "Cantar" se decide ya y se carga en el reproductor: cada canción nueva sale sin llamadas.
+        queue = shuffle([...catalog]);
+        called = [];
+        player.load(queue);
+
+        ui.playlist.textContent = `${playlist.name} · ${catalog.length} canciones`;
+        ui.name.value = playlist.name;
+        ui.pickTab.classList.add("hidden");
+        ui.tabs.classList.remove("hidden");
+        showTab("cards");
+    } catch (error) {
+        ui.pickStatus.textContent = error.message;
+    }
 }
 
 function unmount() {
@@ -159,7 +176,9 @@ function onClick(event) {
 export default {
     template: "/games/bingo/bingo.html",
     cta: "Preparar bingo",
-    needsPlaylist: true,
+    needsPlaylist: false,
+    setupTitle: () => "Bingo en grupo",
+    note: () => "Imprime cartones con las canciones de una playlist y canta el bingo con la música sonando. La playlist se elige dentro.",
     mount,
     unmount
 };

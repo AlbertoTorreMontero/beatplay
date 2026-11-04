@@ -424,3 +424,61 @@ button.dr-piece:disabled { opacity: 0.55; }
     .dr-ref img { width: 44px; }
     .dr-ref-real img { width: clamp(64px, 14dvh, 110px); }
 }
+
+/* Dibujo: selector libre de color, cubo y ver en grande al mantener pulsado */
+.dr-swatch-custom { position: relative; overflow: hidden; background: conic-gradient(#e63946, #ffd60a, #8ac926, #3a86ff, #8338ec, #ff70a6, #e63946); cursor: pointer; }
+.dr-custom { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dr-colors { max-width: 340px; }
+.dr-bucket { color: var(--bone); }
+.dr-bucket-icon { display: grid; place-items: center; }
+.dr-canvas.filling { cursor: cell; }
+
+.dr-zoomable { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+
+.dr-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 4vmin;
+    background: rgb(10 10 10 / 0.86);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+.dr-viewer.open { opacity: 1; }
+.dr-viewer img {
+    width: min(92vmin, 640px);
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 20px 80px rgb(0 0 0 / 0.6);
+    transform: scale(0.94);
+    transition: transform 160ms var(--ease);
+}
+.dr-viewer.open img { transform: scale(1); }
+.dr-tools { flex-wrap: wrap; gap: 6px; }
+@media (max-width: 600px) {
+    .dr-width, .dr-tool { width: 36px; min-width: 36px; height: 36px; min-height: 36px; }
+    .dr-send { min-height: 40px; padding: 0 var(--space-4); }
+}
+@media (max-height: 760px) {
+    .dr-canvas { width: min(100%, 36dvh, 480px); }
+}
+.dr-ref .muted { font-size: var(--text-xs); }
+@media (max-width: 400px) {
+    .dr-tools { gap: 4px; flex-wrap: nowrap; }
+    .dr-width, .dr-tool { width: 32px; min-width: 32px; height: 32px; min-height: 32px; }
+    .dr-send { min-height: 36px; padding: 0 var(--space-3); }
+    .dr-colors { gap: 5px; }
+    .dr-swatch { width: 24px; }
+}
+@media (max-height: 680px) {
+    .dr-canvas { width: min(100%, 33dvh, 480px); }
+    .dr-ref .muted { display: none; }
+}
+.dr-piece { min-width: 0; }
+.dr-piece figcaption { min-width: 0; }
+.dr-piece figcaption span { overflow: hidden; text-overflow: ellipsis; }
