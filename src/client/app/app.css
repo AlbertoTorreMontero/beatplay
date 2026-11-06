@@ -61,6 +61,7 @@
 .wizard-step em, .wizard-step strong { color: var(--bone); font-style: normal; font-weight: 500; }
 .wizard-step > .btn-lg { justify-self: start; }
 .wizard-step > .link { justify-self: start; }
+.wizard-missing { display: grid; gap: var(--space-3); }
 .wizard-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .btn-sm { min-height: 34px; padding: 4px 12px; font-size: var(--text-xs); }
 .access-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--space-2); min-width: 0; }
@@ -368,3 +369,4 @@
     .start-bar .btn { flex: 1; }
     .selection { display: none; }
 }
+.setup-form[data-ref=accountForm] { display: grid; grid-template-columns: 1fr; }

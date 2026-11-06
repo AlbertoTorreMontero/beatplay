@@ -1,8 +1,8 @@
 // Login con el proveedor de música (OAuth) y cierre de sesión.
 const express = require("express");
-const { route } = require("../utils");
+const { route, rateLimit } = require("../utils");
 
-function authRoutes({ provider, sessions }) {
+function authRoutes({ provider, sessions, accounts }) {
 
     const router = express.Router();
     const callbackPath = new URL(provider.redirectUri).pathname;
@@ -11,6 +11,13 @@ function authRoutes({ provider, sessions }) {
     router.get("/auth/config", (req, res) => {
         res.json({ id: provider.id, name: provider.name, redirectUri: provider.redirectUri, ...provider.setup });
     });
+
+    // "Ya estoy registrado": con el correo (o usuario) de Spotify se sabe qué app usa.
+    router.get("/auth/client-id", rateLimit({ max: 20, windowMs: 60000 }), route(async (req, res) => {
+        const clientId = await accounts.find(req.query.account);
+        if (!clientId) return res.status(404).json({ error: "No encontramos ese correo." });
+        res.json({ clientId });
+    }));
 
     // /login?clientId=… entra con la app propia del usuario; sin él, con la compartida (si existe).
     router.get("/login", (req, res) => {
@@ -40,6 +47,7 @@ function authRoutes({ provider, sessions }) {
             return res.redirect(loginError.status === 403 ? "/app?auth=notallowed" : "/app?auth=error");
         }
 
+        if (tokens.ownApp) await accounts.remember(profile, tokens.clientId);
         sessions.start(req, res, tokens, profile);
         res.redirect("/app");
     }));

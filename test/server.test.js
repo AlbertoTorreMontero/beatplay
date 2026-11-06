@@ -243,6 +243,13 @@ describe("app propia de cada usuario (Client ID + PKCE)", () => {
         assert.match((await (await gina("/api/player/token")).json()).accessToken, /-own$/);
         assert.equal((await gina("/api/playlists")).status, 200);
         assert.equal((await (await gina("/api/me")).json()).clientId, OWN_ID);
+
+        // "Ya estoy registrado": con su correo (o usuario) se sabe su app.
+        for (const account of ["gina", "GINA@mail.com "]) {
+            const found = await fetch(`${server.base}/auth/client-id?account=${encodeURIComponent(account)}`);
+            assert.equal((await found.json()).clientId, OWN_ID);
+        }
+        assert.equal((await fetch(`${server.base}/auth/client-id?account=nadie@mail.com`)).status, 404);
     });
 
     it("una cuenta no autorizada en la app compartida va a la guía", async () => {

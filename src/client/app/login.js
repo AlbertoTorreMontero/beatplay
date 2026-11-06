@@ -40,7 +40,7 @@ function goTo(step) {
     [...ui.progress.children].forEach((bar, i) => bar.classList.toggle("done", i < step));
     ui.progress.hidden = returning;
     ui.step4Label.textContent = returning ? "Ya registrado" : "Paso 4 de 4";
-    ui.step4Back.textContent = returning ? "¿No lo tienes? Empezar desde el principio" : "Atrás";
+    ui.step4Back.textContent = returning ? "¿No lo tienes? Registrarme desde el principio" : "Atrás";
     ui.step4Back.dataset.stepGo = returning ? "1" : "3";
     window.scrollTo({ top: 0 });
     if (step === 4 && !isMobile()) ui.clientId.focus({ preventScroll: true });
@@ -131,9 +131,15 @@ export function initLogin({ config: providerConfig, onGuest, invite }) {
             case "returning": {
                 const known = store.get(CLIENT_ID_KEY);
                 if (known) return loginWith(known);
+                notice("");
+                ui.accountMissing.hidden = true;
+                show("returning");
+                if (!isMobile()) ui.account.focus();
+                return;
+            }
+            case "paste-id":
                 returning = true;
                 return show("setup", 4);
-            }
             case "reset":
                 returning = false;
                 store.set(CLIENT_ID_KEY, null);
@@ -158,6 +164,30 @@ export function initLogin({ config: providerConfig, onGuest, invite }) {
     });
 
     ui.clientId.addEventListener("input", checkClientId);
+
+    // "Ya estoy registrado": con el correo se busca su Client ID y se va directo a Spotify.
+    ui.account.addEventListener("input", () => { ui.accountMissing.hidden = true; });
+    ui.accountForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const account = ui.account.value.trim();
+        if (!account) return ui.account.focus();
+        ui.accountButton.disabled = true;
+        try {
+            const res = await fetch(`/auth/client-id?account=${encodeURIComponent(account)}`);
+            if (res.status === 404) {
+                ui.accountMissing.hidden = false;
+                return;
+            }
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "No se pudo comprobar el correo.");
+            const { clientId } = await res.json();
+            store.set(CLIENT_ID_KEY, clientId);
+            loginWith(clientId);
+        } catch (error) {
+            toast(error.message, { error: true });
+        } finally {
+            ui.accountButton.disabled = false;
+        }
+    });
     ui.setupForm.addEventListener("submit", event => {
         event.preventDefault();
         ui.connectButton.click();

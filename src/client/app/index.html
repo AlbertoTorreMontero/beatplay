@@ -44,7 +44,7 @@
 
                         <form class="access-card" data-ref="guestForm" aria-labelledby="accessGuest">
                             <span class="access-tag">Sin cuenta</span>
-                            <h2 id="accessGuest" class="display" data-ref="guestTitle">Tengo un código</h2>
+                            <h2 id="accessGuest" class="display" data-ref="guestTitle">Entrar en una sala</h2>
                             <p class="muted" data-ref="guestText">Te han pasado el código de una sala. Escríbelo y a jugar: no necesitas Spotify ni registrarte.</p>
                             <div class="access-join">
                                 <input class="input rl-code-input" data-ref="guestCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC12" aria-label="Código de la sala">
@@ -54,13 +54,13 @@
 
                         <div class="access-card access-host" aria-labelledby="accessHost">
                             <span class="access-tag">Con Spotify Premium</span>
-                            <h2 id="accessHost" class="display">Pongo la música</h2>
-                            <p class="muted">Juega solo o crea una sala para tus amigos con tus playlists. La música suena en esta web.</p>
+                            <h2 id="accessHost" class="display">Iniciar sesión</h2>
+                            <p class="muted">Para poner la música: juega solo o crea salas con tus playlists. La música suena en esta web.</p>
                             <div class="access-buttons">
                                 <button class="btn btn-lg" type="button" data-action="returning" data-ref="returningButton">Ya estoy registrado</button>
-                                <button class="btn btn-lg btn-outline" type="button" data-action="login" data-ref="firstButton">Es mi primera vez</button>
+                                <button class="btn btn-lg btn-outline" type="button" data-action="login" data-ref="firstButton">Registrarme</button>
                             </div>
-                            <p class="access-note" data-ref="loginNote">¿Primera vez? Te guiamos paso a paso: son 3 minutos y solo se hace una vez.</p>
+                            <p class="access-note" data-ref="loginNote">¿Primera vez? Regístrate: te guiamos paso a paso, son 3 minutos y solo se hace una vez.</p>
                             <p class="access-note access-warn" data-ref="mobileNote" hidden>En el móvil Spotify no deja sonar la música en la web: ponla desde un ordenador.</p>
                             <button class="link" type="button" data-action="reset" data-ref="resetLink" hidden>Conectar otra cuenta de Spotify</button>
                         </div>
@@ -68,19 +68,39 @@
                     </div>
                 </div>
 
-                <!-- Asistente: conectar Spotify, un paso por pantalla -->
+                <!-- Ya registrado: solo el correo -->
+                <div data-login="returning" class="login-view wizard hidden">
+                    <section class="wizard-step current">
+                        <span class="eyebrow">Ya estoy registrado</span>
+                        <h2 class="display">¿Cuál es tu correo de Spotify?</h2>
+                        <p class="lead">El mismo con el que te registraste. Después Spotify te pedirá tu contraseña.</p>
+                        <form class="setup-form" data-ref="accountForm">
+                            <input class="input" data-ref="account" type="email" inputmode="email" placeholder="tu@correo.com" autocomplete="email" autocapitalize="off" spellcheck="false" aria-label="Correo de Spotify">
+                            <button class="btn btn-lg" type="submit" data-ref="accountButton">Iniciar sesión</button>
+                        </form>
+                        <div data-ref="accountMissing" class="wizard-missing" hidden>
+                            <p class="lead">No encontramos ese correo. Si es tu primera vez, regístrate: son 3 minutos.</p>
+                            <div class="wizard-actions">
+                                <button class="btn" type="button" data-action="login">Registrarme</button>
+                                <button class="btn btn-outline" type="button" data-action="paste-id">Tengo mi Client ID</button>
+                            </div>
+                        </div>
+                        <button class="link" type="button" data-action="shared" hidden>Me ha añadido quien creó esta web</button>
+                    </section>
+                    <p class="login-links"><button class="link" type="button" data-show="start">Volver</button></p>
+                </div>
+
+                <!-- Registro: crear la app de Spotify, un paso por pantalla -->
                 <div data-login="setup" class="login-view wizard hidden">
                     <ol class="wizard-progress" aria-hidden="true"><li></li><li></li><li></li><li></li></ol>
 
                     <section class="wizard-step" data-step="1">
                         <span class="eyebrow">Paso 1 de 4</span>
-                        <h2 class="display">Conecta tu Spotify</h2>
+                        <h2 class="display">Regístrate en 3 minutos</h2>
                         <p class="lead">Spotify solo deja poner música en webs como esta a cuentas <strong>Premium</strong>, y pide que cada persona cree una "app" gratis en su web. Suena raro, pero es copiar y pegar. Solo se hace una vez.</p>
                         <div class="wizard-actions">
                             <button class="btn btn-lg" type="button" data-step-go="2">Empezar</button>
-                            <button class="btn btn-outline" type="button" data-step-go="4">Ya lo hice antes</button>
                         </div>
-                        <button class="link" type="button" data-action="shared" hidden>Me ha añadido quien creó esta web</button>
                     </section>
 
                     <section class="wizard-step" data-step="2">
@@ -120,12 +140,12 @@
                             <button class="btn btn-outline" type="button" data-action="paste" data-ref="pasteButton">Pegar</button>
                         </form>
                         <p class="muted small" data-ref="clientIdHint">Si no lo encuentras: en developer.spotify.com/dashboard, entra en tu app BeatPlay.</p>
-                        <button class="btn btn-lg" type="button" data-action="connect" data-ref="connectButton" disabled>Conectar con Spotify</button>
-                        <p class="muted small">Spotify te preguntará si das permiso a BeatPlay: pulsa <em>Aceptar</em>. Y listo: la próxima vez entras con un toque.</p>
+                        <button class="btn btn-lg" type="button" data-action="connect" data-ref="connectButton" disabled>Iniciar sesión con Spotify</button>
+                        <p class="muted small">Spotify te pedirá tu correo y contraseña y si das permiso a BeatPlay: pulsa <em>Aceptar</em>. Y ya estás registrado: la próxima vez solo pones tu correo.</p>
+                        <p class="muted small">¿Spotify dice <em>INVALID_CLIENT</em>? Revisa que la Redirect URI de tu app es exactamente la del paso 3 (sin espacios ni barra al final) y que pulsaste <em>Save</em>.</p>
                         <div class="wizard-actions">
                             <button class="btn btn-outline" type="button" data-step-go="3" data-ref="step4Back">Atrás</button>
                         </div>
-                        <button class="link" type="button" data-action="shared" hidden>Me ha añadido quien creó esta web</button>
                     </section>
 
                     <p class="login-links"><button class="link" type="button" data-show="start">Cancelar</button></p>

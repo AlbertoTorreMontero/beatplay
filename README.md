@@ -69,6 +69,7 @@ src/
     config.js            Variables de entorno
     app.js               Express: páginas, login y API
     session.js           Sesión cifrada en la cookie (sobrevive a reinicios) y renovación de tokens
+    accounts.js          Correo → Client ID de cada persona (Upstash Redis o data/accounts.json)
     library.js           Caché y muestras aleatorias de playlists (independiente del servicio)
     routes/              auth.js (login) y api.js (/api/*)
     providers/           Adaptadores de servicios de música: index.js (interfaz) y spotify.js
@@ -101,7 +102,9 @@ Los juegos no saben qué servicio hay detrás: usan un modelo de canción neutro
 1. *New → Web Service* con este repositorio. Build: `npm install`. Start: `npm start`.
 2. Variables de entorno: las de `.env.example`, con `SPOTIFY_REDIRECT_URI=https://TU-APP.onrender.com/callback`.
 3. Si usas la app compartida, añade esa misma Redirect URI en su Dashboard.
-4. *Health check path*: `/healthz`.
+4. Para que "Ya estoy registrado" funcione tras reinicios: crea una base gratis en Upstash (Redis)
+   y añade `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN`.
+5. *Health check path*: `/healthz`.
 
 La sesión va cifrada en la cookie: reiniciar o dormir el servicio no obliga a volver a entrar.
 Las salas sí viven en memoria: si el servicio se reinicia, las salas abiertas se pierden.
