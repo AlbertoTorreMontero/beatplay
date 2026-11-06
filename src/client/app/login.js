@@ -27,6 +27,8 @@ function notice(text) {
     ui.loginNotice.textContent = text || "";
 }
 
+let returning = false; // entró por "Ya estoy registrado": sin pasos previos
+
 function show(view, step = 1) {
     for (const section of $$("[data-login]")) section.classList.toggle("hidden", section.dataset.login !== view);
     ui.loginTitle.hidden = view !== "start";
@@ -36,6 +38,10 @@ function show(view, step = 1) {
 function goTo(step) {
     for (const section of $$("[data-step]")) section.classList.toggle("current", Number(section.dataset.step) === step);
     [...ui.progress.children].forEach((bar, i) => bar.classList.toggle("done", i < step));
+    ui.progress.hidden = returning;
+    ui.step4Label.textContent = returning ? "Ya registrado" : "Paso 4 de 4";
+    ui.step4Back.textContent = returning ? "¿No lo tienes? Empezar desde el principio" : "Atrás";
+    ui.step4Back.dataset.stepGo = returning ? "1" : "3";
     window.scrollTo({ top: 0 });
     if (step === 4 && !isMobile()) ui.clientId.focus({ preventScroll: true });
 }
@@ -78,12 +84,14 @@ export function initLogin({ config: providerConfig, onGuest, invite }) {
 
     ui.redirectUri.textContent = config.redirectUri;
     if (config.dashboardUrl) ui.dashboard.href = config.dashboardUrl;
-    $("[data-action=shared]", root).hidden = !config.sharedApp;
+    for (const link of $$("[data-action=shared]", root)) link.hidden = !config.sharedApp;
     ui.mobileNote.hidden = !isMobile();
 
     const saved = store.get(CLIENT_ID_KEY);
     if (saved) {
         ui.loginNote.textContent = "Ya conectaste tu Spotify en este navegador: entras con un toque.";
+        ui.returningButton.textContent = "Entrar con Spotify";
+        ui.firstButton.hidden = true;
         ui.resetLink.hidden = false;
         ui.clientId.value = saved;
     }
@@ -109,16 +117,25 @@ export function initLogin({ config: providerConfig, onGuest, invite }) {
             notice("");
             return show(target.dataset.show);
         }
-        if (target.dataset.stepGo) return goTo(Number(target.dataset.stepGo));
+        if (target.dataset.stepGo) {
+            if (target.dataset.stepGo !== "4") returning = false;
+            return goTo(Number(target.dataset.stepGo));
+        }
         if (target.dataset.copy) return copy(target.dataset.copy, target);
         if (target.dataset.copyRef) return copy(ui[target.dataset.copyRef].textContent, target);
 
         switch (target.dataset.action) {
-            case "login": {
+            case "login":
+                returning = false;
+                return show("setup", 1);
+            case "returning": {
                 const known = store.get(CLIENT_ID_KEY);
-                return known ? loginWith(known) : show("setup", 1);
+                if (known) return loginWith(known);
+                returning = true;
+                return show("setup", 4);
             }
             case "reset":
+                returning = false;
                 store.set(CLIENT_ID_KEY, null);
                 ui.clientId.value = "";
                 checkClientId();

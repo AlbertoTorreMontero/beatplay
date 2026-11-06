@@ -179,6 +179,7 @@ function toTrack(item) {
         album: item.album?.name || "",
         year: year > 0 ? year : null,
         cover: images[0]?.url || null,
+        thumb: images[1]?.url || images[0]?.url || null, // 300 px: para cuadrículas (Bingo)
         preview: item.preview_url || null,
         duration: item.duration_ms || null,
         isrc: item.external_ids?.isrc || null // código universal de la grabación: sirve para buscar su tempo

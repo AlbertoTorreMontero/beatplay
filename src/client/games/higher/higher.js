@@ -68,9 +68,16 @@ function start() {
 
 const valid = track => ATTRIBUTES[attribute].value(track) != null;
 
+// No se repite una canción hasta que han salido casi todas las demás.
+let recent = [];
 function pick(except) {
-    const options = tracks.filter(track => track !== except && track !== left && valid(track));
-    return options[Math.floor(Math.random() * options.length)];
+    const usable = tracks.filter(track => track !== except && track !== left && valid(track));
+    const fresh = usable.filter(track => !recent.includes(track));
+    const options = fresh.length ? fresh : usable;
+    const chosen = options[Math.floor(Math.random() * options.length)];
+    recent.push(chosen);
+    if (recent.length > Math.max(1, usable.length - 2)) recent = recent.slice(-Math.floor(usable.length / 2));
+    return chosen;
 }
 
 // Cada ronda, un dato al azar distinto del anterior. BPM solo si ya se sabe el de bastantes canciones.

@@ -4,7 +4,7 @@
  *  - Todo se cachea por usuario (30 min): reiniciar o cambiar de juego no vuelve a pedir nada.
  *  - El total de canciones sale de la lista de playlists ya cacheada o de la primera página:
  *    no hay llamada aparte para saber cuántas tiene.
- *  - Una muestra aleatoria lee solo las páginas que necesita.
+ *  - Una muestra aleatoria lee pocas páginas repartidas por la playlist (3 como mucho la primera vez).
  *  - La selección oficial de Hipster es la misma para todos: se guarda una vez en disco.
  */
 const fs = require("fs");
@@ -14,6 +14,7 @@ const { shuffle, uniqueById, HttpError } = require("./utils");
 const CACHE_TTL = 30 * 60 * 1000;
 const CACHE_MAX = 500;
 const PARALLEL_PAGES = 5;
+const SPREAD = 3; // páginas al azar por muestra en playlists grandes
 const SHARED_TTL = 7 * 24 * 60 * 60 * 1000;
 
 function createLibrary(provider, { dataDir }) {
@@ -62,33 +63,49 @@ function createLibrary(provider, { dataDir }) {
         return shuffle(uniqueById(tracks));
     }
 
-    // Muestra aleatoria: páginas al azar hasta tener suficientes. Una playlist corta es una sola llamada.
+    // Muestra aleatoria. Una página son canciones seguidas (a menudo del mismo disco o artista),
+    // así que en playlists grandes se leen SPREAD páginas al azar a la vez y se reparten por artista.
+    // Las páginas quedan en caché: la siguiente partida reutiliza las leídas y solo suma alguna nueva.
     async function sampleTracks(req, id, amount, accept = () => true) {
         let total = await knownTotal(req, id);
-        let tracks = [];
-        const read = new Set();
+        const pages = [];
 
         if (total == null) {
             const first = await page(req, id, 0);
             total = first.total;
-            tracks = first.tracks.filter(accept);
-            read.add(0);
+            pages.push(first);
         }
 
-        // Primero páginas completas al azar; la última (incompleta) al final: así casi siempre basta una.
         const all = offsets(total);
-        const full = total % provider.pageSize ? all.slice(0, -1) : all;
-        const order = [...shuffle(full), ...all.slice(full.length)];
+        const wanted = Math.max(SPREAD, Math.ceil(amount / provider.pageSize));
+        const free = shuffle(all.filter(offset => offset !== 0 || !pages.length));
+        const isCached = offset => cache.get(userKey(req, `page:${id}:${offset}`))?.expires > Date.now();
+        // Lo ya leído no cuesta nada; como mucho una página nueva por partida (salvo la primera vez).
+        const known = free.filter(isCached).slice(0, wanted - pages.length - 1);
+        const fresh = free.filter(offset => !isCached(offset)).slice(0, wanted - pages.length - known.length);
+        const picked = [...known, ...fresh];
+        pages.push(...await Promise.all(picked.map(offset => page(req, id, offset))));
 
-        for (const offset of order) {
-            if (tracks.length >= amount) break;
-            if (read.has(offset)) continue;
-            tracks = uniqueById(tracks.concat((await page(req, id, offset)).tracks.filter(accept)));
-        }
-
-        return shuffle(tracks).slice(0, amount);
+        return varied(uniqueById(pages.flatMap(result => result.tracks).filter(accept)), amount);
     }
 
+    // De una canción por artista en cada vuelta: nunca diez seguidas del mismo.
+    function varied(tracks, amount) {
+        const byArtist = new Map();
+        for (const track of shuffle(tracks)) {
+            const key = (track.artist || "").split(",")[0].trim().toLowerCase();
+            if (!byArtist.has(key)) byArtist.set(key, []);
+            byArtist.get(key).push(track);
+        }
+        const groups = [...byArtist.values()];
+        const result = [];
+        while (result.length < amount && groups.some(group => group.length)) {
+            for (const group of shuffle(groups)) {
+                if (group.length && result.length < amount) result.push(group.pop());
+            }
+        }
+        return shuffle(result);
+    }
 
     // ---- Selección oficial de Hipster: compartida por todos y guardada en disco.
     // Spotify solo deja leer una playlist a su dueño, así que la carga quien pueda y la ven todos.

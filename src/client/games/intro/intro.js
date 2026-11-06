@@ -113,6 +113,7 @@ function nextSong() {
 
     stage = 0;
     heard = false;
+    playback = null; // el estado de la canción anterior no vale para esta
     ui.attempts.replaceChildren();
     ui.reveal.classList.add("hidden");
     ui.board.classList.remove("hidden");
@@ -138,6 +139,7 @@ async function playFragment() {
     setStatus("Escuchando…");
 
     const id = round;
+    const requested = performance.now();
     try {
         await player.playAt(index);
     } catch (error) {
@@ -150,12 +152,18 @@ async function playFragment() {
     if (id !== round) return player.pause();
     heard = true;
     const track = deck[index];
-    const started = performance.now();
+    const resolved = performance.now();
+
+    // Solo cuenta un aviso del reproductor posterior a la petición y de esta canción (o recién
+    // empezada: Spotify a veces da otra URI para la misma canción). Nunca el de la anterior.
+    const fresh = state => state && !state.paused && state.at > requested
+        && (state.ref === track.ref || state.position < 3000);
 
     watcher = setInterval(() => {
-        const sameSong = playback?.ref === track.ref && !playback.paused;
-        // Se corta por la posición real de la canción; si el reproductor no informa, por reloj.
-        if ((sameSong && positionNow(playback) >= stopAt) || performance.now() - started > stopAt + 2500) {
+        const reached = fresh(playback) && positionNow(playback) >= stopAt;
+        // Tope por reloj, por si el reproductor tarda en informar.
+        const tooLong = performance.now() - resolved > stopAt + 1200;
+        if (reached || tooLong) {
             stopWatching();
             player.pause();
             setStatus("¿La tienes? Escríbela abajo, vuelve a escucharla o salta.");

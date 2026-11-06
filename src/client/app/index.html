@@ -56,8 +56,11 @@
                             <span class="access-tag">Con Spotify Premium</span>
                             <h2 id="accessHost" class="display">Pongo la música</h2>
                             <p class="muted">Juega solo o crea una sala para tus amigos con tus playlists. La música suena en esta web.</p>
-                            <button class="btn btn-lg" type="button" data-action="login">Entrar con Spotify</button>
-                            <p class="access-note" data-ref="loginNote">La primera vez te guiamos: son 3 minutos y solo se hace una vez.</p>
+                            <div class="access-buttons">
+                                <button class="btn btn-lg" type="button" data-action="returning" data-ref="returningButton">Ya estoy registrado</button>
+                                <button class="btn btn-lg btn-outline" type="button" data-action="login" data-ref="firstButton">Es mi primera vez</button>
+                            </div>
+                            <p class="access-note" data-ref="loginNote">¿Primera vez? Te guiamos paso a paso: son 3 minutos y solo se hace una vez.</p>
                             <p class="access-note access-warn" data-ref="mobileNote" hidden>En el móvil Spotify no deja sonar la música en la web: ponla desde un ordenador.</p>
                             <button class="link" type="button" data-action="reset" data-ref="resetLink" hidden>Conectar otra cuenta de Spotify</button>
                         </div>
@@ -109,7 +112,7 @@
                     </section>
 
                     <section class="wizard-step" data-step="4">
-                        <span class="eyebrow">Paso 4 de 4</span>
+                        <span class="eyebrow" data-ref="step4Label">Paso 4 de 4</span>
                         <h2 class="display">Pega tu Client ID</h2>
                         <p class="lead">En la página de tu app aparece <em>Client ID</em>: un código de 32 letras y números. Cópialo y pégalo aquí.</p>
                         <form class="setup-form" data-ref="setupForm">
@@ -120,8 +123,9 @@
                         <button class="btn btn-lg" type="button" data-action="connect" data-ref="connectButton" disabled>Conectar con Spotify</button>
                         <p class="muted small">Spotify te preguntará si das permiso a BeatPlay: pulsa <em>Aceptar</em>. Y listo: la próxima vez entras con un toque.</p>
                         <div class="wizard-actions">
-                            <button class="btn btn-outline" type="button" data-step-go="3">Atrás</button>
+                            <button class="btn btn-outline" type="button" data-step-go="3" data-ref="step4Back">Atrás</button>
                         </div>
+                        <button class="link" type="button" data-action="shared" hidden>Me ha añadido quien creó esta web</button>
                     </section>
 
                     <p class="login-links"><button class="link" type="button" data-show="start">Cancelar</button></p>

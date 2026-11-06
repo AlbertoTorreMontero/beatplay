@@ -86,6 +86,16 @@ function generate() {
 // En cada fila se rellenan 5 de las 9 casillas, al azar.
 function bingoCard(number, title) {
     const picks = shuffle([...catalog]).slice(0, PER_CARD);
+    // Sin carga diferida: al imprimir, las portadas de los cartones de abajo no se habrían cargado.
+    const cover = track => {
+        if (!track.cover) return h("div", { class: "bingo-nocover", "aria-hidden": "true" }, "♪");
+        const img = h("img", { src: track.thumb || track.cover, alt: "", decoding: "async" });
+        img.addEventListener("error", () => {
+            if (img.src !== track.cover) img.src = track.cover; // reintento con la grande
+            else img.replaceWith(h("div", { class: "bingo-nocover", "aria-hidden": "true" }, "♪"));
+        }, { once: false });
+        return img;
+    };
     const cells = [];
 
     for (let row = 0; row < ROWS; row++) {
@@ -95,7 +105,7 @@ function bingoCard(number, title) {
             const track = filled.has(col) ? picks.pop() : null;
             cells.push(track
                 ? h("div", { class: "bingo-cell" },
-                    h("img", { src: track.cover || "", alt: "", loading: "lazy" }),
+                    cover(track),
                     h("span", {}, track.name))
                 : h("div", { class: "bingo-cell empty", "aria-hidden": "true" }));
         }
@@ -168,10 +178,25 @@ function onClick(event) {
     if (!target) return;
 
     if (target.dataset.tab) showTab(target.dataset.tab);
-    else if (target.dataset.action === "print") window.print();
+    else if (target.dataset.action === "print") printWhenReady();
     else if (target.dataset.action === "next") callNext();
 }
 
+
+// Imprime cuando todas las portadas han cargado (como mucho 6 s de espera).
+async function printWhenReady() {
+    ui.print.disabled = true;
+    const images = [...document.querySelectorAll(".bingo-cell img")];
+    await Promise.race([
+        Promise.all(images.map(img => img.complete ? null : new Promise(done => {
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+        }))),
+        new Promise(done => setTimeout(done, 6000))
+    ]);
+    ui.print.disabled = false;
+    window.print();
+}
 
 export default {
     template: "/games/bingo/bingo.html",

@@ -324,7 +324,7 @@ describe("canciones y Hipster", () => {
     });
     after(() => server.stop());
 
-    it("pocas llamadas a Spotify: /api/me sale de la sesión y una muestra corta es una sola página", async () => {
+    it("pocas llamadas a Spotify: /api/me sale de la sesión y una muestra lee como mucho 3 páginas", async () => {
         const before = server.spotifyCalls.length;
         assert.equal((await user("/api/me")).status, 200);
         assert.equal(server.spotifyCalls.length, before, "/api/me no debe llamar a Spotify");
@@ -333,11 +333,14 @@ describe("canciones y Hipster", () => {
         const afterList = server.spotifyCalls.length;
         const sample = await (await user("/api/playlists/pl-dana/tracks")).json();
         assert.equal(sample.length, 50);
-        assert.equal(server.spotifyCalls.length - afterList, 1, "con el total ya conocido, 50 canciones = 1 página");
+        const sampled = server.spotifyCalls.length - afterList;
+        assert.ok(sampled >= 1 && sampled <= 3, `con el total ya conocido, 3 páginas como mucho (${sampled})`);
+        const counts = Object.values(Object.groupBy(sample, track => track.artist)).map(group => group.length);
+        assert.ok(Math.max(...counts) - Math.min(...counts) <= 1, `artistas repartidos: ${counts}`);
 
         await user("/api/playlists");
         await user("/api/me");
-        assert.equal(server.spotifyCalls.length - afterList, 1, "lo repetido sale de caché");
+        assert.equal(server.spotifyCalls.length - afterList, sampled, "lo repetido sale de caché");
     });
 
     it("reproducir una cola entera es una sola llamada", async () => {
@@ -386,7 +389,7 @@ describe("canciones y Hipster", () => {
         await user("/api/playlists/pl-dana/tracks?dated=1");
         await user("/api/playlists/pl-dana/tracks?dated=1");
 
-        assert.ok(server.spotifyCalls.length - before <= 1, "se esperaba servir casi todo desde caché");
+        assert.ok(server.spotifyCalls.length - before <= 2, "como mucho una página nueva por partida");
     });
 
     it("el tempo (BPM) sale de Deezer por ISRC, se guarda y no gasta llamadas a Spotify", async () => {

@@ -1,6 +1,7 @@
 /*
  * PORTADA PIXELADA
- * Sale la portada de una canción de tu playlist hecha cuadraditos. Cada fallo (o "Más nítida")
+ * Sale la portada de una canción de tu playlist hecha cuadraditos y hay que decir de qué ARTISTA es
+ * (un artista tiene muchas canciones con la misma portada: pedir el título sería injusto). Cada fallo (o "Más nítida")
  * la aclara un poco. Cuanto antes la aciertes, más puntos; si se acaba sin acertar, se pierde la racha.
  * Al resolverla suena la canción.
  *
@@ -34,11 +35,15 @@ async function mount(container, { playlist }) {
 
     ui.playlist.textContent = playlist.name;
     ui.best.textContent = store.get("pixelBest", 0);
-    deck = shuffle([...tracks]);
+    deck = spread(tracks);
+    if (deck.length < MIN_SONGS) throw new Error(`Hacen falta al menos ${MIN_SONGS} portadas distintas.`);
     player.load(deck);
 
-    search = songSearch(ui.search, { onPick: guess });
-    search.setChoices([...tracks].sort((a, b) => a.name.localeCompare(b.name)));
+    // Se elige artista. Cuenta cualquiera de los artistas de la canción.
+    const names = new Map();
+    for (const track of tracks) for (const name of artistsOf(track)) names.set(name.toLowerCase(), name);
+    search = songSearch(ui.search, { onPick: guess, placeholder: "Escribe el artista" });
+    search.setChoices([...names].map(([id, name]) => ({ id, name, artist: "" })).sort((a, b) => a.name.localeCompare(b.name)));
     ui.stages.replaceChildren(...LEVELS.map(() => h("span")));
 
     root.addEventListener("click", onClick);
@@ -54,7 +59,7 @@ function unmount() {
 
 function next() {
     if (++index >= deck.length) {
-        deck = shuffle([...deck]);
+        deck = spread(deck);
         player.load(deck);
         index = 0;
     }
@@ -64,7 +69,7 @@ function next() {
     ui.board.classList.remove("hidden");
     search.disable(false);
     search.clear();
-    setStatus("¿De qué canción es esta portada?");
+    setStatus("¿De qué artista es esta portada?");
 
     image = new Image();
     image.onload = draw;
@@ -89,9 +94,25 @@ function draw() {
     ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
 }
 
-function guess(track) {
-    if (track.id === deck[index].id) return finish(true);
-    ui.attempts.append(h("li", { class: "wrong" }, `✕ ${track.name}`));
+const artistsOf = track => (track.artist || "").split(", ").map(name => name.trim()).filter(Boolean);
+
+// Una canción por portada y sin el mismo artista dos veces seguidas.
+function spread(tracks) {
+    const byCover = new Map();
+    for (const track of shuffle([...tracks])) if (!byCover.has(track.cover)) byCover.set(track.cover, track);
+    const pool = [...byCover.values()];
+    const result = [];
+    while (pool.length) {
+        const last = result.at(-1);
+        const i = pool.findIndex(track => !last || artistsOf(track)[0] !== artistsOf(last)[0]);
+        result.push(pool.splice(Math.max(0, i), 1)[0]);
+    }
+    return result;
+}
+
+function guess(choice) {
+    if (artistsOf(deck[index]).some(name => name.toLowerCase() === choice.id)) return finish(true);
+    ui.attempts.append(h("li", { class: "wrong" }, `✕ ${choice.name}`));
     advance();
 }
 

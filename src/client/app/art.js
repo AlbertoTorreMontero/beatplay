@@ -31,11 +31,11 @@ export const ART = {
     // Etiqueta de precio con nota
     bid: SVG(`<path d="M20 58l34-34h36v36l-34 34z"/><circle cx="78" cy="38" r="5"/><path d="M52 50v18a5 5 0 1 1-4-5"/><path d="M52 50l10-3"/>`),
     // Mazo de subasta
-    auction: SVG(`<rect x="44" y="22" width="40" height="18" rx="4" transform="rotate(-30 64 31)"/><path d="M58 44l-30 40"/><path d="M20 98h44"/><path d="M28 90h28"/><path d="M84 66l8-6M88 78h10M80 84l6 8"/>`),
+    auction: SVG(`<g transform="rotate(-45 52 44)"><rect x="30" y="35" width="44" height="18" rx="3"/><path d="M36 35v18M68 35v18"/><path d="M52 53v52"/></g><rect x="10" y="92" width="48" height="10" rx="2"/><path d="M26 84l-4-6M34 82v-7M42 84l4-6"/>`),
     // Micrófono
     karaoke: SVG(`<rect x="46" y="16" width="28" height="46" rx="14"/><path d="M36 50a24 24 0 0 0 48 0"/><path d="M60 74v20M44 96h32"/><path d="M90 28q8 8 0 16M98 22q14 14 0 28"/>`),
     // Lienzo y pincel
-    draw: SVG(`<rect x="14" y="22" width="62" height="62" rx="3"/><path d="M24 70q10-24 20-8t22-14"/><circle cx="58" cy="38" r="6"/><path d="M104 18l-34 58"/><path d="M70 76l-6 12 10-8"/>`),
+    draw: SVG(`<rect x="12" y="22" width="64" height="64" rx="3"/><circle cx="58" cy="38" r="5"/><path d="M22 72c8-14 14-14 20-4s12 8 18-8"/><g transform="rotate(40 88 58)"><rect x="82" y="22" width="12" height="58" rx="2"/><path d="M82 80l6 12 6-12M82 32h12"/></g>`),
     // Ruleta de portadas
     roulette: SVG(`<circle cx="60" cy="60" r="40"/><circle cx="60" cy="60" r="8"/><path d="M60 20v32M60 68v32M20 60h32M68 60h32M32 32l22 22M66 66l22 22M88 32L66 54M54 66L32 88"/><path d="M60 8l-6 10h12z"/>`),
     // Cartón de bingo

@@ -63,6 +63,10 @@
 .wizard-step > .link { justify-self: start; }
 .wizard-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .btn-sm { min-height: 34px; padding: 4px 12px; font-size: var(--text-xs); }
+.access-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--space-2); min-width: 0; }
+.access-buttons .btn { width: 100%; min-width: 0; padding-inline: var(--space-3); white-space: normal; }
+.access-buttons .btn[hidden] { display: none; }
+.access-buttons:has(.btn[hidden]) { grid-template-columns: 1fr; }
 .access-warn { color: var(--accent-text); }
 .access-host > .link { justify-self: start; }
 
